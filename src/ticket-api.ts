@@ -53,7 +53,7 @@ export function createTicketApi(config: { apiUrl: string; apiKey: string; guildI
     async claim(worker) {
       const result = await request("ticket-deliveries/claim", {}, { worker_id: worker });
       if (!Array.isArray(result.deliveries) || result.deliveries.length > 5) return invalid();
-      const seen = new Set<string>();
+      const seen = new Set<string>(); const markers = new Set<string>();
       for (const v of result.deliveries) {
         if (!record(v) || typeof v.id !== "string" || !uuid.test(v.id) || seen.has(v.id) || !record(v.payload)
           || !(v.ticketId === null || typeof v.ticketId === "string" && uuid.test(v.ticketId))
@@ -70,7 +70,8 @@ export function createTicketApi(config: { apiUrl: string; apiKey: string; guildI
         if (v.kind === "create_thread" && (v.payload.marker !== v.ticketMarker || typeof v.payload.requester_discord_id !== "string" || !snowflake.test(v.payload.requester_discord_id))) return invalid();
         if (v.kind === "send_message" && (typeof v.payload.content !== "string" || !v.payload.content.trim() || v.payload.content.length > 4000
           || typeof v.payload.message_id !== "string" || !uuid.test(v.payload.message_id))) return invalid();
-        seen.add(v.id);
+        if (markers.has(v.ticketMarker)) return invalid();
+        seen.add(v.id); markers.add(v.ticketMarker);
       }
       return result.deliveries as Delivery[];
     },

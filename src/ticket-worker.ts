@@ -14,19 +14,20 @@ export function createTicketWorker(api: TicketApi, discord: TicketDiscord, log: 
     running = true;
     try {
       const deliveries = await api.claim(worker);
-      for (const d of deliveries) {
-        // A slow earlier item must not cause effects under an expired lease.
-        if (Date.parse(d.leasedUntil) - Date.now() < 10_000) continue;
+      // CC claims at most one delivery per ticket. Independent tickets start together,
+      // so a slow earlier ticket cannot expire another ticket's untouched lease.
+      await Promise.all(deliveries.map(async d => {
+        if (Date.parse(d.leasedUntil) - Date.now() < 10_000) return;
         let result: Record<string, unknown>;
         try { result = await discord.execute(d); }
         catch (e) {
           const failure = e instanceof DeliveryError ? e : new DeliveryError("outcome_unknown");
           try { await api.fail(d, worker, failure.code, failure.uncertain); } catch { log("delivery_failure_ack_unavailable"); }
-          continue;
+          return;
         }
         // Never repeat a Discord effect because the acknowledgement failed.
         try { await api.complete(d, worker, result); } catch { log("delivery_complete_ack_unavailable"); }
-      }
+      }));
     } catch { log("delivery_claim_unavailable"); }
     finally { running = false; }
   };

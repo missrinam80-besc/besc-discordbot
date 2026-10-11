@@ -76,6 +76,14 @@ test("Onzekere effecten worden veilig gemeld, zonder foutstack of payload", asyn
     { execute: async () => { throw Error("SECRET FIXTURE CONTENT"); } });
   await worker(); assert.deepEqual(failures, [{ code: "outcome_unknown", uncertain: true }]);
 });
+test("Afzonderlijke ticketleases starten samen, zonder op een traag ticket te wachten", async () => {
+  const started: string[] = []; let release!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const worker = createTicketWorker(api({ claim: async () => [delivery(), delivery({ id: token, ticketId: token, ticketMarker: `besc-ticket-${token}` })] }),
+    { execute: async d => { started.push(d.id); if (d.id === deliveryId) await blocked; return {}; } });
+  const run = worker(); await new Promise(r => setTimeout(r, 5));
+  assert.deepEqual(started, [deliveryId, token]); release(); await run;
+});
 function discordFixture() {
   let creates = 0, sends = 0, removes = 0, history: Collection<string, any> = new Collection();
   const thread: any = { id: threadId, guildId: guild, parentId: parent, name: marker, ownerId: botId, type: ChannelType.PrivateThread, invitable: false, archived: false,
