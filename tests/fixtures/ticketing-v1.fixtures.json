@@ -1,0 +1,15 @@
+{
+  "contract": "besc-ticketing-v1",
+  "fixtureNotice": "TESTFIXTURE — NIET PUBLICEREN. Alleen schema- en botbouwvoorbeelden; geen live credentials of inrichting.",
+  "guildId": "1067893182387474432",
+  "parentChannelId": "222222222222222222",
+  "requesterDiscordId": "111111111111111111",
+  "ticketId": "20000000-0000-4000-8000-000000000001",
+  "intake": { "method": "POST", "path": "/api/v1/bot/tickets", "idempotencyKey": "FORM_INTERACTION_SNOWFLAKE_WITHIN_24H", "body": { "guild_id": "1067893182387474432", "parent_channel_id": "222222222222222222", "discord_user_id": "111111111111111111", "subject": "TESTFIXTURE", "content": "Voorbeeldvraag" } },
+  "own": { "method": "GET", "path": "/api/v1/bot/tickets/20000000-0000-4000-8000-000000000001?guild_id=1067893182387474432&discord_user_id=111111111111111111" },
+  "ingest": { "method": "POST", "path": "/api/v1/bot/tickets/20000000-0000-4000-8000-000000000001/messages", "idempotencyKey": "444444444444444444", "body": { "guild_id": "1067893182387474432", "parent_channel_id": "222222222222222222", "discord_user_id": "111111111111111111", "thread_id": "333333333333333333", "source_message_id": "444444444444444444", "content": "Vervolgvraag" } },
+  "claim": { "method": "POST", "path": "/api/v1/bot/ticket-deliveries/claim", "body": { "guild_id": "1067893182387474432", "worker_id": "worker_instance_123" } },
+  "createThreadComplete": { "method": "POST", "path": "/api/v1/bot/ticket-deliveries/20000000-0000-4000-8000-000000000002/complete", "body": { "guild_id": "1067893182387474432", "worker_id": "worker_instance_123", "lease_token": "20000000-0000-4000-8000-000000000003", "parent_channel_id": "222222222222222222", "requester_discord_id": "111111111111111111", "thread_id": "333333333333333333", "requester_added": true, "invitable": false } },
+  "sendMessageComplete": { "method": "POST", "path": "/api/v1/bot/ticket-deliveries/20000000-0000-4000-8000-000000000002/complete", "body": { "guild_id": "1067893182387474432", "worker_id": "worker_instance_123", "lease_token": "20000000-0000-4000-8000-000000000003", "thread_id": "333333333333333333", "message_id": "444444444444444444" } },
+  "uncertainFailure": { "method": "POST", "path": "/api/v1/bot/ticket-deliveries/20000000-0000-4000-8000-000000000002/fail", "body": { "guild_id": "1067893182387474432", "worker_id": "worker_instance_123", "lease_token": "20000000-0000-4000-8000-000000000003", "error_code": "outcome_unknown", "uncertain": true } }
+}
