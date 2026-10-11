@@ -40,7 +40,7 @@ export function createCommandHandler(api: BotApi, guildId: string, deduplicator 
         switch (interaction.options.getSubcommand()) {
           case "status": {
             const identity = await api.identity();
-            await reply(`BESC API bereikbaar. Client: ${safeText(identity.clientId, 64)}. Deze proef leest alleen gegevens.`); break;
+            await reply(`BESC API bereikbaar. Client: ${safeText(identity.clientId, 64)}. ${identity.readOnly ? "Deze proef leest alleen gegevens." : "Ticketrechten zijn ingeschakeld."}`); break;
           }
           case "account": {
             const account = await api.account(interaction.user.id);

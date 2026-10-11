@@ -1,4 +1,4 @@
-export type BotConfig = { token: string; applicationId: string; guildId: string; apiUrl: string; webUrl: string; apiKey: string };
+export type BotConfig = { token: string; applicationId: string; guildId: string; apiUrl: string; webUrl: string; apiKey: string; ticketParentChannelId?: string };
 const snowflake = /^[1-9]\d{16,19}$/;
 export function validateUrl(value: string, allowLocal = false) {
   const url = new URL(value);
@@ -19,5 +19,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BotConfig {
   if (api.pathname !== "/api/v1/bot/") throw Error("API-URL moet eindigen op /api/v1/bot/.");
   validateUrl(config.webUrl, true);
   // Only this configured origin receives the client credential. Redirects are rejected in api.ts.
-  return config;
+  const ticketParentChannelId = env.DISCORD_TICKET_PARENT_CHANNEL_ID?.trim();
+  if (ticketParentChannelId && !snowflake.test(ticketParentChannelId)) throw Error("Ongeldig ticketkanaal-ID.");
+  return { ...config, ...(ticketParentChannelId ? { ticketParentChannelId } : {}) };
 }

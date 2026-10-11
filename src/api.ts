@@ -1,6 +1,6 @@
 import { validateUrl } from "./config.ts";
 
-export type Identity = { clientId: string; scopes: string[]; readOnly: true };
+export type Identity = { clientId: string; scopes: string[]; readOnly: boolean };
 export type Account = { linked: true; activeMember: true; canReadEvents: boolean };
 export type EventInfo = { id: string; title: string; status: string; event_type: string;
   start_at: string | null; start_date: string | null; location: string | null; is_online: boolean };
@@ -17,20 +17,23 @@ export class ApiError extends Error {
   constructor(code: string, status: number, requestId?: string) { super(code); this.code = code; this.status = status; this.requestId = requestId; }
 }
 const codes = new Set(["invalid_client", "guild_not_allowed", "insufficient_scope", "account_unavailable", "membership_required",
-  "events_forbidden", "rate_limited", "upstream_unavailable", "server_configuration_unavailable", "invalid_query", "invalid_offset"]);
+  "events_forbidden", "rate_limited", "upstream_unavailable", "server_configuration_unavailable", "invalid_query", "invalid_offset",
+  "channel_not_allowed", "thread_not_allowed", "ticket_unavailable", "delivery_unavailable", "idempotency_conflict",
+  "source_conflict", "lease_conflict", "thread_conflict", "ticket_closed", "interaction_expired", "ticket_expired", "body_too_large", "json_required"]);
 function object(value: unknown): value is Record<string, unknown> { return Boolean(value && typeof value === "object" && !Array.isArray(value)); }
-export function createApi(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch, timeoutMs = 8000): BotApi {
+export function createTransport(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch, timeoutMs = 8000, maxResponseBytes = 65_536) {
   const base = validateUrl(config.apiUrl, true);
   if (base.pathname !== "/api/v1/bot/") throw Error("invalid_api_url");
-  async function get(resource: string, params: Record<string, string> = {}): Promise<Record<string, unknown>> {
+  return async function request(resource: string, params: Record<string, string> = {}, body?: Record<string, unknown>, key?: string): Promise<Record<string, unknown>> {
     const url = new URL(resource, base);
-    url.searchParams.set("guild_id", config.guildId);
+    if (!body) url.searchParams.set("guild_id", config.guildId);
     for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetcher(url, { method: "GET", redirect: "error", signal: controller.signal,
-        headers: { Authorization: `Bearer ${config.apiKey}`, Accept: "application/json" } });
+      const response = await fetcher(url, { method: body ? "POST" : "GET", redirect: "error", signal: controller.signal,
+        headers: { Authorization: `Bearer ${config.apiKey}`, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}),
+          ...(key ? { "Idempotency-Key": key } : {}) }, body: body ? JSON.stringify({ ...body, guild_id: config.guildId }) : undefined });
       // Bound decoded response size, including when Content-Length is absent.
       const reader = response.body?.getReader();
       if (!reader) throw new ApiError("invalid_response", 502);
@@ -39,26 +42,29 @@ export function createApi(config: { apiUrl: string; apiKey: string; guildId: str
         const part = await reader.read();
         if (part.done) break;
         size += part.value.length;
-        if (size > 65_536) { await reader.cancel(); throw new ApiError("invalid_response", 502); }
+        if (size > maxResponseBytes) { await reader.cancel(); throw new ApiError("invalid_response", 502); }
         chunks.push(part.value);
       }
-      const body: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      const responseBody: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       if (!response.ok) {
-        const e = object(body) && object(body.error) ? body.error : {};
+        const e = object(responseBody) && object(responseBody.error) ? responseBody.error : {};
         throw new ApiError(typeof e.code === "string" && codes.has(e.code) ? e.code : "upstream_unavailable", response.status,
           typeof e.requestId === "string" && /^[a-f0-9-]{36}$/.test(e.requestId) ? e.requestId : undefined);
       }
-      if (!object(body)) throw new ApiError("invalid_response", 502);
-      return body;
+      if (!object(responseBody)) throw new ApiError("invalid_response", 502);
+      return responseBody;
     } catch (error) {
       if (error instanceof ApiError) throw error;
       throw new ApiError(controller.signal.aborted ? "api_timeout" : "api_unavailable", 503);
     } finally { clearTimeout(timer); }
-  }
+  };
+}
+export function createApi(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch, timeoutMs = 8000): BotApi {
+  const get = createTransport(config, fetcher, timeoutMs);
   return {
     async identity() {
       const b = await get("identity");
-      if (typeof b.clientId !== "string" || !Array.isArray(b.scopes) || !b.scopes.every(s => typeof s === "string") || b.readOnly !== true) throw new ApiError("invalid_response", 502);
+      if (typeof b.clientId !== "string" || !Array.isArray(b.scopes) || !b.scopes.every(s => typeof s === "string") || typeof b.readOnly !== "boolean") throw new ApiError("invalid_response", 502);
       return b as Identity;
     },
     async account(discordId) {
