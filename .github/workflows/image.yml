@@ -1,0 +1,31 @@
+name: Publish tested DEV image
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24.14.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - name: Build image
+        run: docker build --tag "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA}" .
+      - name: Verify image before publishing
+        run: docker run --rm --entrypoint node "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA}" -e "const fs=require('node:fs'); if(process.getuid()===0 || fs.existsSync('/app/.env') || fs.existsSync('/app/tests') || fs.existsSync('/app/src') || !fs.existsSync('/app/dist/main.js')) process.exit(1)"
+      - name: Publish to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker push "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA}"
+          docker logout ghcr.io
