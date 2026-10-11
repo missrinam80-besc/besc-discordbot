@@ -2,7 +2,7 @@ import { ChannelType, PermissionFlagsBits, type Client, type TextChannel, type T
 import type { Delivery, TicketApi } from "./ticket-api.ts";
 import { DeliveryError, type TicketDiscord } from "./ticket-worker.ts";
 const needed = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.CreatePrivateThreads, PermissionFlagsBits.SendMessagesInThreads,
-  PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageThreads];
+  PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.EmbedLinks];
 export class DiscordTickets implements TicketDiscord {
   client: Client; guildId: string; parentId: string; api: TicketApi;
   constructor(client: Client, guildId: string, parentId: string, api: TicketApi) { this.client = client; this.guildId = guildId; this.parentId = parentId; this.api = api; }

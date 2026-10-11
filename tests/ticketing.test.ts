@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { Collection, ChannelType, MessageFlags, type Client, type Message, type ChatInputCommandInteraction, type ModalSubmitInteraction } from "discord.js";
+import { Collection, ChannelType, MessageFlags, PermissionFlagsBits, PermissionsBitField, type Client, type Message, type ChatInputCommandInteraction, type ModalSubmitInteraction } from "discord.js";
 import { ApiError, createApi } from "../src/api.ts";
 import { createTicketApi, type Delivery, type TicketApi } from "../src/ticket-api.ts";
 import { createTicketWorker, DeliveryError } from "../src/ticket-worker.ts";
@@ -101,6 +101,15 @@ test("Privéthreadcreatie gebruikt neutrale marker, invitable=false en bevestigd
   const f = discordFixture(); const result = await f.port.execute(delivery());
   assert.deepEqual(result, { thread_id: threadId, parent_channel_id: parent, requester_discord_id: user, requester_added: true, invitable: false });
   assert.equal(f.counters().creates, 1);
+});
+test("Ontbrekend embedrecht blokkeert startup vóór ticketantwoorden worden verwerkt", async () => {
+  const f = discordFixture();
+  const permission = new PermissionsBitField([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.CreatePrivateThreads,
+    PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageThreads]);
+  f.channel.permissionsFor = () => permission;
+  await assert.rejects(f.port.parent(), (e: unknown) => e instanceof DeliveryError && e.code === "permission_denied");
+  permission.add(PermissionFlagsBits.EmbedLinks);
+  assert.equal(await f.port.parent(), f.channel);
 });
 test("Crashherstel vindt bestaande thread zonder een tweede aan te maken", async () => {
   const f = discordFixture(); f.port.threads = async () => [f.thread];

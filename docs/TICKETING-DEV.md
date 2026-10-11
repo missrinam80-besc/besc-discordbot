@@ -12,7 +12,7 @@ Deze botuitbreiding gebruikt het definitieve CC-contract `besc-ticketing-v1` uit
 
 ## Discord instellingen
 
-Geef de bot alleen in dit kanaal: Kanaal bekijken, Privéthreads maken, Berichten versturen in threads, Berichtgeschiedenis lezen en Threads beheren. De aanvrager moet het parentkanaal kunnen zien en in threads kunnen spreken. Openbare berichten en zelfstandig threads maken zijn voor aanvragers niet nodig. Geef de bot geen Administrator of rolbeheer.
+Geef de bot alleen in dit kanaal: Kanalen bekijken, Privéthreads creëren, Berichten sturen in threads, Berichtgeschiedenis lezen, Threads beheren en Embedded links. Embedded links is nodig voor ticketantwoorden tot 4000 tekens als één embed. De aanvrager moet het parentkanaal kunnen zien en in threads kunnen spreken. Openbare berichten en zelfstandig threads maken zijn voor aanvragers niet nodig. Geef de bot geen Administrator of rolbeheer.
 
 Zet voor deze bot onder Developer Portal, Bot, Privileged Gateway Intents **Server Members Intent** en **Message Content Intent** aan. Eventuele vereiste Discordgoedkeuring moet eerst rond zijn. De implementatie gebruikt Guilds, GuildMessages, MessageContent en GuildMembers. GuildMembers is nodig voor de volledige deelnemerslijst van privéthreads; onvolledige lijsten zijn geen privacybewijs.
 
