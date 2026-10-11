@@ -1,0 +1,27 @@
+name: Bot checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - run: docker build --tag besc-discordbot:ci .
+      - name: Check image contents and runtime user without credentials
+        run: |
+          docker run --rm --entrypoint node besc-discordbot:ci -e "const fs=require('node:fs'); if(process.getuid()===0 || fs.existsSync('/app/.env') || fs.existsSync('/app/tests') || fs.existsSync('/app/src') || !fs.existsSync('/app/dist/main.js')) process.exit(1)"
+          docker compose config --quiet
+        env:
+          BESC_BOT_IMAGE: besc-discordbot:ci
+          BESC_BOT_ENV_FILE: .env.example

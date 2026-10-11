@@ -1,0 +1,21 @@
+name: besc-discordbot-dev
+services:
+  bot:
+    image: ${BESC_BOT_IMAGE:?Set BESC_BOT_IMAGE to a tested image tag or digest}
+    env_file:
+      - ${BESC_BOT_ENV_FILE:?Set BESC_BOT_ENV_FILE to the absolute server secret file path}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
