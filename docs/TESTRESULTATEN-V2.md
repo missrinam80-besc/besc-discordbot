@@ -5,9 +5,9 @@ Gecontroleerd op 12 oktober 2026. Botbasis `14b8e0890ef8e606fd2af77c4d76c7033030
 | Controle | Resultaat |
 | --- | --- |
 | `npm run check` | Geslaagd |
-| `npm test` | 133 geslaagd, 0 mislukt, 0 overgeslagen |
+| `npm test` | 134 geslaagd, 0 mislukt, 0 overgeslagen |
 | Bestaande regressies | Alle 68 oorspronkelijke tests behouden en geslaagd |
-| Nieuwe V2-tests | 65 tests voor contract, formulieren, queue, HTTP-retry, parentcontext en journal |
+| Nieuwe V2-tests | 66 tests voor contract, formulieren, queue, HTTP-retry, parentcontext en journal |
 | `npm run build` | Geslaagd |
 | Docker/image/volume/Compose | In CI; geen lokale Dockerinstallatie beschikbaar. Definitieve CI-status wordt bij de PR vermeld. |
 

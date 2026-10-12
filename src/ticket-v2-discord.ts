@@ -39,6 +39,9 @@ export class DiscordConfigEffects implements ConfigEffects {
   async channel(id: string): Promise<TextChannel> {
     const c = await this.client.channels.fetch(id, { force: true });
     if (!c || c.type !== ChannelType.GuildText || c.guildId !== this.guild) throw new ConfigFailure("permission_denied", false);
+    // Refresh role definitions and the bot's current role IDs before effective permission evidence.
+    const guild = await this.client.guilds.fetch({ guild: this.guild, force: true });
+    await guild.members.fetch({ user: this.app, force: true });
     return c;
   }
   async confirmed(d: ConfigDelivery) { await this.state.forget?.(d.id); }
@@ -82,7 +85,7 @@ export class DiscordConfigEffects implements ConfigEffects {
   async execute(d: ConfigDelivery, inspect: () => Promise<ConfigDelivery>): Promise<Record<string, unknown>> {
     if (d.guildId !== this.guild || this.client.user?.id !== this.app || this.client.application?.id !== this.app) throw new ConfigFailure("permission_denied", false);
     if (d.kind === "verify_server_admin") {
-      const guild = await this.client.guilds.fetch(this.guild);
+      const guild = await this.client.guilds.fetch({ guild: this.guild, force: true });
       const user = String(d.payload.discordUserId);
       const member = await guild.members.fetch({ user, force: true }).catch((e: unknown) => {
         if (typeof e === "object" && e && "code" in e && e.code === 10007) return null;

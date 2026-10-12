@@ -86,6 +86,11 @@ test("Beheerbewijs controleert uitsluitend de opdrachtactor met actuele ManageGu
  const mock=discord(),d=delivery({kind:'verify_server_admin',payload:{applicationId:app,discordUserId:'111111111111111111'}});
  const r=await new DiscordConfigEffects(mock.client,guild,app,state()).execute(d,async()=>d);assert.equal(r.is_admin,true);assert.equal(r.discord_user_id,'111111111111111111');
 });
+test("Ingetrokken beheerrol wordt via geforceerde serverfetch bevestigd in plaats van oude cache",async()=>{
+ const mock=discord(),d=delivery({kind:'verify_server_admin',payload:{applicationId:app,discordUserId:'111111111111111111'}});
+ mock.client.guilds.fetch=(async(options:any)=>{assert.equal(options.guild,guild);assert.equal(options.force,true);return{members:{fetch:async(args:any)=>{assert.equal(args.user,d.payload.discordUserId);assert.equal(args.force,true);return{user:{bot:false},permissions:new PermissionsBitField()};}}};})as any;
+ const r=await new DiscordConfigEffects(mock.client,guild,app,state()).execute(d,async()=>d);assert.equal(r.is_admin,false);
+});
 test("Runtime rapporteert alleen maximaal 50 GuildText-metadata zonder leden, rollen of inhoud",async()=>{
  const mock=discord();const report=await new DiscordConfigEffects(mock.client,guild,app,state()).report();assert.deepEqual(report,[{id:channelId,name:'TEST channel',type:0}]);
 });
