@@ -1,0 +1,533 @@
+{
+  "schemaVersion": 2,
+  "contractVersion": "cc-ticketing-v2-1",
+  "warning": "TESTFIXTURE — NIET PUBLICEREN",
+  "limits": {
+    "requestBytes": 131072,
+    "configResponseBytes": 2097152,
+    "questions": 5,
+    "panelTypes": 25,
+    "channels": 50,
+    "intentMinutes": 30,
+    "leaseSeconds": 60,
+    "retentionDays": 180
+  },
+  "typeDraft": {
+    "name": "TESTFIXTURE — Algemene vraag",
+    "description": "Voorbeeld, niet publiceren",
+    "active": true,
+    "eligibility": "everyone",
+    "parentChannelId": "1558853872766689382",
+    "formTitle": "Algemene vraag",
+    "subjectQuestionId": "onderwerp",
+    "sortOrder": 0,
+    "embed": {
+      "title": "Een vraag voor BESC",
+      "description": "TESTFIXTURE — Deel geen wachtwoorden of tokens.",
+      "color": "#d8222a",
+      "footer": "Gesprekken zijn privé."
+    },
+    "questions": [
+      {
+        "id": "onderwerp",
+        "label": "Onderwerp",
+        "description": "",
+        "placeholder": "",
+        "kind": "short",
+        "required": true,
+        "minLength": 1,
+        "maxLength": 160
+      },
+      {
+        "id": "omschrijving",
+        "label": "Waarmee kunnen we je helpen?",
+        "description": "",
+        "placeholder": "",
+        "kind": "paragraph",
+        "required": true,
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      {
+        "id": "omgeving",
+        "label": "Waar gaat de vraag over?",
+        "description": "",
+        "placeholder": "Kies één omgeving",
+        "kind": "single",
+        "required": true,
+        "maxValues": 1,
+        "options": [
+          {
+            "value": "discord",
+            "label": "Discord"
+          },
+          {
+            "value": "cc",
+            "label": "Command Center"
+          }
+        ]
+      }
+    ]
+  },
+  "panelDraft": {
+    "name": "TESTFIXTURE — Help",
+    "channelId": "1558853872766689382",
+    "typeIds": [
+      "20000000-0000-4000-8000-000000000004"
+    ],
+    "embed": {
+      "title": "TESTFIXTURE — Waarmee kunnen we je helpen?",
+      "description": "Kies een tickettype.",
+      "color": "#d8222a",
+      "footer": "Je antwoorden komen nooit in dit paneel."
+    }
+  },
+  "configResponse": {
+    "schemaVersion": 2,
+    "guildId": "1067893182387474432",
+    "configurationRevisionId": "20000000-0000-4000-8000-000000000001",
+    "generatedAt": "2026-10-12T19:00:00.000Z",
+    "features": [
+      "typed_intake",
+      "ticket_panels",
+      "label_modals"
+    ],
+    "panels": [
+      {
+        "panelId": "20000000-0000-4000-8000-000000000002",
+        "revisionId": "20000000-0000-4000-8000-000000000003",
+        "channelId": "1558853872766689382",
+        "messageId": "111111111111111111",
+        "embed": {
+          "title": "TESTFIXTURE — Waarmee kunnen we je helpen?",
+          "description": "Kies een tickettype.",
+          "color": "#d8222a",
+          "footer": "Je antwoorden komen nooit in dit paneel."
+        },
+        "typeRevisionIds": [
+          "20000000-0000-4000-8000-000000000005"
+        ]
+      }
+    ],
+    "typeRevisions": [
+      {
+        "name": "TESTFIXTURE — Algemene vraag",
+        "description": "Voorbeeld, niet publiceren",
+        "active": true,
+        "eligibility": "everyone",
+        "parentChannelId": "1558853872766689382",
+        "formTitle": "Algemene vraag",
+        "subjectQuestionId": "onderwerp",
+        "sortOrder": 0,
+        "embed": {
+          "title": "Een vraag voor BESC",
+          "description": "TESTFIXTURE — Deel geen wachtwoorden of tokens.",
+          "color": "#d8222a",
+          "footer": "Gesprekken zijn privé."
+        },
+        "questions": [
+          {
+            "id": "onderwerp",
+            "label": "Onderwerp",
+            "description": "",
+            "placeholder": "",
+            "kind": "short",
+            "required": true,
+            "minLength": 1,
+            "maxLength": 160
+          },
+          {
+            "id": "omschrijving",
+            "label": "Waarmee kunnen we je helpen?",
+            "description": "",
+            "placeholder": "",
+            "kind": "paragraph",
+            "required": true,
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          {
+            "id": "omgeving",
+            "label": "Waar gaat de vraag over?",
+            "description": "",
+            "placeholder": "Kies één omgeving",
+            "kind": "single",
+            "required": true,
+            "maxValues": 1,
+            "options": [
+              {
+                "value": "discord",
+                "label": "Discord"
+              },
+              {
+                "value": "cc",
+                "label": "Command Center"
+              }
+            ]
+          }
+        ],
+        "typeId": "20000000-0000-4000-8000-000000000004",
+        "revisionId": "20000000-0000-4000-8000-000000000005"
+      }
+    ]
+  },
+  "typeRevisionResponse": {
+    "schemaVersion": 2,
+    "guildId": "1067893182387474432",
+    "typeRevision": {
+      "name": "TESTFIXTURE — Algemene vraag",
+      "description": "Voorbeeld, niet publiceren",
+      "active": true,
+      "eligibility": "everyone",
+      "parentChannelId": "1558853872766689382",
+      "formTitle": "Algemene vraag",
+      "subjectQuestionId": "onderwerp",
+      "sortOrder": 0,
+      "embed": {
+        "title": "Een vraag voor BESC",
+        "description": "TESTFIXTURE — Deel geen wachtwoorden of tokens.",
+        "color": "#d8222a",
+        "footer": "Gesprekken zijn privé."
+      },
+      "questions": [
+        {
+          "id": "onderwerp",
+          "label": "Onderwerp",
+          "description": "",
+          "placeholder": "",
+          "kind": "short",
+          "required": true,
+          "minLength": 1,
+          "maxLength": 160
+        },
+        {
+          "id": "omschrijving",
+          "label": "Waarmee kunnen we je helpen?",
+          "description": "",
+          "placeholder": "",
+          "kind": "paragraph",
+          "required": true,
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        {
+          "id": "omgeving",
+          "label": "Waar gaat de vraag over?",
+          "description": "",
+          "placeholder": "Kies één omgeving",
+          "kind": "single",
+          "required": true,
+          "maxValues": 1,
+          "options": [
+            {
+              "value": "discord",
+              "label": "Discord"
+            },
+            {
+              "value": "cc",
+              "label": "Command Center"
+            }
+          ]
+        }
+      ],
+      "typeId": "20000000-0000-4000-8000-000000000004",
+      "revisionId": "20000000-0000-4000-8000-000000000005"
+    }
+  },
+  "intentResponse": {
+    "intentId": "20000000-0000-4000-8000-000000000006",
+    "expiresAt": "2026-10-12T19:30:00.000Z",
+    "typeRevisionId": "20000000-0000-4000-8000-000000000005"
+  },
+  "intakeResponse": {
+    "ticketId": "20000000-0000-4000-8000-000000000007",
+    "status": "open",
+    "linkStatus": "pending",
+    "threadId": null
+  },
+  "requests": [
+    {
+      "name": "runtime-report",
+      "method": "POST",
+      "path": "bot-runtime/report",
+      "scope": "bot-config:report",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "application_id": "1558542661265129474",
+        "installed": true,
+        "runtime_version": "2.0.0",
+        "features": [
+          "typed_intake",
+          "ticket_panels",
+          "label_modals"
+        ],
+        "channels": [
+          {
+            "id": "1558853872766689382",
+            "name": "maak-een-ticket",
+            "type": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "config",
+      "method": "GET",
+      "path": "ticket-config?guild_id=1067893182387474432",
+      "scope": "bot-config:read"
+    },
+    {
+      "name": "revision",
+      "method": "GET",
+      "path": "ticket-config/revisions/20000000-0000-4000-8000-000000000005?guild_id=1067893182387474432",
+      "scope": "bot-config:read"
+    },
+    {
+      "name": "slash-intent",
+      "method": "POST",
+      "path": "ticket-intents",
+      "scope": "tickets:create",
+      "idempotencyKey": "111111111111111111",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "discord_user_id": "111111111111111111",
+        "type_revision_id": "20000000-0000-4000-8000-000000000005",
+        "source": "slash"
+      }
+    },
+    {
+      "name": "panel-intent",
+      "method": "POST",
+      "path": "ticket-intents",
+      "scope": "tickets:create",
+      "idempotencyKey": "111111111111111111",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "discord_user_id": "111111111111111111",
+        "type_revision_id": "20000000-0000-4000-8000-000000000005",
+        "source": "panel",
+        "panel_id": "20000000-0000-4000-8000-000000000002",
+        "panel_revision_id": "20000000-0000-4000-8000-000000000003",
+        "channel_id": "1558853872766689382",
+        "message_id": "111111111111111111"
+      }
+    },
+    {
+      "name": "intake",
+      "method": "POST",
+      "path": "tickets/intake",
+      "scope": "tickets:create",
+      "idempotencyKey": "111111111111111111",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "discord_user_id": "111111111111111111",
+        "type_revision_id": "20000000-0000-4000-8000-000000000005",
+        "intake_intent_id": "20000000-0000-4000-8000-000000000006",
+        "answers": {
+          "onderwerp": "TESTFIXTURE",
+          "omschrijving": "Private voorbeeldvraag",
+          "omgeving": [
+            "discord"
+          ]
+        }
+      }
+    },
+    {
+      "name": "claim",
+      "method": "POST",
+      "path": "bot-config-deliveries/claim",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123"
+      }
+    },
+    {
+      "name": "complete-verify_server_admin",
+      "method": "POST",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008/complete",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123",
+        "lease_token": "20000000-0000-4000-8000-000000000009",
+        "application_id": "1558542661265129474",
+        "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "verify_server_admin",
+        "discord_user_id": "111111111111111111",
+        "is_admin": true
+      }
+    },
+    {
+      "name": "complete-check_channel",
+      "method": "POST",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008/complete",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123",
+        "lease_token": "20000000-0000-4000-8000-000000000009",
+        "application_id": "1558542661265129474",
+        "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "check_channel",
+        "channel_id": "1558853872766689382",
+        "channel_type": 0,
+        "permissions_ok": true,
+        "missing_permissions": []
+      }
+    },
+    {
+      "name": "complete-publish_panel",
+      "method": "POST",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008/complete",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123",
+        "lease_token": "20000000-0000-4000-8000-000000000009",
+        "application_id": "1558542661265129474",
+        "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "publish_panel",
+        "channel_id": "1558853872766689382",
+        "message_id": "111111111111111111",
+        "bot_author_id": "1558542661265129474",
+        "revision_id": "20000000-0000-4000-8000-000000000003"
+      }
+    },
+    {
+      "name": "complete-disable_panel",
+      "method": "POST",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008/complete",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123",
+        "lease_token": "20000000-0000-4000-8000-000000000009",
+        "application_id": "1558542661265129474",
+        "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "disable_panel",
+        "channel_id": "1558853872766689382",
+        "message_id": "111111111111111111",
+        "bot_author_id": "1558542661265129474",
+        "disabled": true
+      }
+    },
+    {
+      "name": "fail",
+      "method": "POST",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008/fail",
+      "scope": "bot-config:deliver",
+      "body": {
+        "guild_id": "1067893182387474432",
+        "worker_id": "worker_123",
+        "lease_token": "20000000-0000-4000-8000-000000000009",
+        "error_code": "outcome_unknown",
+        "uncertain": true
+      }
+    },
+    {
+      "name": "inspect",
+      "method": "GET",
+      "path": "bot-config-deliveries/20000000-0000-4000-8000-000000000008?guild_id=1067893182387474432&worker_id=worker_123&lease_token=20000000-0000-4000-8000-000000000009",
+      "scope": "bot-config:deliver"
+    }
+  ],
+  "publicationDelivery": {
+    "id": "20000000-0000-4000-8000-000000000008",
+    "kind": "publish_panel",
+    "guildId": "1067893182387474432",
+    "channelId": "1558853872766689382",
+    "panelId": "20000000-0000-4000-8000-000000000002",
+    "revisionId": "20000000-0000-4000-8000-000000000003",
+    "messageId": null,
+    "payload": {
+      "schemaVersion": 2,
+      "embed": {
+        "title": "TESTFIXTURE — Waarmee kunnen we je helpen?",
+        "description": "Kies een tickettype.",
+        "color": "#d8222a",
+        "footer": "Je antwoorden komen nooit in dit paneel."
+      },
+      "typeRevisionIds": [
+        "20000000-0000-4000-8000-000000000005"
+      ],
+      "channelId": "1558853872766689382",
+      "allowedMentions": {
+        "parse": []
+      },
+      "applicationId": "1558542661265129474",
+      "expectedBotAuthorId": "1558542661265129474",
+      "typeRevisions": [
+        {
+          "name": "TESTFIXTURE — Algemene vraag",
+          "description": "Voorbeeld, niet publiceren",
+          "active": true,
+          "eligibility": "everyone",
+          "parentChannelId": "1558853872766689382",
+          "formTitle": "Algemene vraag",
+          "subjectQuestionId": "onderwerp",
+          "sortOrder": 0,
+          "embed": {
+            "title": "Een vraag voor BESC",
+            "description": "TESTFIXTURE — Deel geen wachtwoorden of tokens.",
+            "color": "#d8222a",
+            "footer": "Gesprekken zijn privé."
+          },
+          "questions": [
+            {
+              "id": "onderwerp",
+              "label": "Onderwerp",
+              "description": "",
+              "placeholder": "",
+              "kind": "short",
+              "required": true,
+              "minLength": 1,
+              "maxLength": 160
+            },
+            {
+              "id": "omschrijving",
+              "label": "Waarmee kunnen we je helpen?",
+              "description": "",
+              "placeholder": "",
+              "kind": "paragraph",
+              "required": true,
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            {
+              "id": "omgeving",
+              "label": "Waar gaat de vraag over?",
+              "description": "",
+              "placeholder": "Kies één omgeving",
+              "kind": "single",
+              "required": true,
+              "maxValues": 1,
+              "options": [
+                {
+                  "value": "discord",
+                  "label": "Discord"
+                },
+                {
+                  "value": "cc",
+                  "label": "Command Center"
+                }
+              ]
+            }
+          ],
+          "typeId": "20000000-0000-4000-8000-000000000004",
+          "revisionId": "20000000-0000-4000-8000-000000000005"
+        }
+      ]
+    },
+    "payloadHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "leaseToken": "20000000-0000-4000-8000-000000000009",
+    "leasedUntil": "2026-10-12T19:01:00.000Z",
+    "nonce": "1",
+    "marker": "besc-panel-20000000-0000-4000-8000-000000000002",
+    "reconcile": false,
+    "allowedMentions": {
+      "parse": []
+    },
+    "withdrawn": false
+  }
+}

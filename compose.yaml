@@ -4,6 +4,8 @@ services:
     image: ${BESC_BOT_IMAGE:?Set BESC_BOT_IMAGE to a tested image tag or digest}
     env_file:
       - ${BESC_BOT_ENV_FILE:?Set BESC_BOT_ENV_FILE to the absolute server secret file path}
+    volumes:
+      - bot-state:/app/state
     restart: unless-stopped
     init: true
     read_only: true
@@ -19,3 +21,5 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+volumes:
+  bot-state:

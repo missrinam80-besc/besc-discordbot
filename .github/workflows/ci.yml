@@ -21,6 +21,7 @@ jobs:
       - name: Check image contents and runtime user without credentials
         run: |
           docker run --rm --entrypoint node besc-discordbot:ci -e "const fs=require('node:fs'); if(process.getuid()===0 || fs.existsSync('/app/.env') || fs.existsSync('/app/tests') || fs.existsSync('/app/src') || !fs.existsSync('/app/dist/main.js')) process.exit(1)"
+          docker run --rm --read-only --mount type=volume,destination=/app/state --entrypoint node besc-discordbot:ci -e "const fs=require('node:fs'); fs.writeFileSync('/app/state/ci-probe','ok'); fs.unlinkSync('/app/state/ci-probe'); if(process.getuid()===0) process.exit(1)"
           docker compose config --quiet
         env:
           BESC_BOT_IMAGE: besc-discordbot:ci

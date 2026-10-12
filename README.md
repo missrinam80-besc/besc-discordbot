@@ -1,6 +1,8 @@
 # BESC Discordbot
 
-Alleen-lezen bot met `/besc status`, `/besc account` en `/besc events`. Antwoorden zijn privé voor de aanvrager. De bot draait op een **aparte bot-DEV-server**, met HTTPS-verzoeken naar `https://cc-dev.belgianstreamerscommunity.be/api/v1/bot/`. Geen directe databaseverbinding, publieke poort, moderatie, rollenbeheer, XP of Bucks. MEE6 blijft behouden.
+Bot met `/besc status`, `/besc account`, `/besc events` en optionele privéticketing. Ticketing V2 ondersteunt CC-tickettypes, vragenformulieren en gecontroleerde paneelpublicaties. Antwoorden zijn privé voor de aanvrager. De bot draait op een **aparte bot-DEV-server**, met HTTPS-verzoeken naar `https://cc-dev.belgianstreamerscommunity.be/api/v1/bot/`. Geen directe databaseverbinding, publieke poort, moderatie, rollenbeheer, XP of Bucks. MEE6 blijft behouden.
+
+Zie [Ticketing V2](docs/TICKETING-V2.md) voor het definitieve contract, de expliciete opt-in, duurzame state-volume, scope-overdracht en DEV-acceptatie. De V2-functies worden niet bij containerstart gepubliceerd of geactiveerd; CC-concepten blijven zonder Discordeffect.
 
 ## Bouwen en controleren
 
@@ -22,7 +24,7 @@ Kopieer `.env.example` naar `.env` en vul de zes instellingen in. Token en oorsp
 
 De bot controleert de API-client en drie leesrechten bij opstart en controleert API-toegang opnieuw per commando. De API vertrouwt de geauthenticeerde bot om de echte commandactor door te geven; de bot gebruikt uitsluitend `interaction.user.id`.
 
-Gebruik de bevestigde testserver/applicatie, gewone `Guilds`-intent en geen privileged intents of Administrator. Installatiescopes: `bot`, `applications.commands`, `permissions=0`. `npm run commands:preview` wijzigt niets; `npm run commands:register` registreert na toestemming uitsluitend het eigen `/besc`-commando. DEV-commands zijn al geregistreerd. Containerstart registreert geen commands.
+Gebruik de bevestigde testserver/applicatie. De leesmodus heeft alleen `Guilds` nodig; ticketing gebruikt daarnaast `GuildMessages`, `GuildMembers` en `MessageContent` met de reeds overeengekomen privileged intents. Geen Administrator. Zie [ticketrechten](docs/TICKETING-DEV.md) en [V2](docs/TICKETING-V2.md) voor de beperkte kanaalrechten. `npm run commands:preview` wijzigt niets; `npm run commands:register` registreert na toestemming uitsluitend het eigen `/besc`-commando. V2 behoudt die commanddefinitie. Containerstart registreert geen commands.
 
 ## Container
 
@@ -32,6 +34,6 @@ CI controleert TypeScript, tests, build, Docker-image en Compose. De handmatige 
 
 ## Acceptatie
 
-Op 10–11 oktober 2026 zijn live gebruikersproeven bevestigd voor positieve toegang, ongekoppeld account, ontbrekende eventrechten, geen actief organisatielidmaatschap en sleutelintrekking/herstel. Niet elk scenario heeft een afzonderlijke screenshot of HTTP-trace. Permanente containerhosting is hiermee nog niet bewezen.
+De gebruiker heeft de bestaande DEV-container, leescommando’s, volledige V1-ticketflow en verwijderketen na 180 dagen geaccepteerd. V2 is een afzonderlijke uitbreiding; de lokale V2-tests en deze branch bewijzen nog geen live V2-werking.
 
-De huidige acceptatiesleutel verloopt **17 oktober 2026 om 20:13 Belgische tijd**. Regel voor hosting bewust de sleutelgeldigheid/rotatie; die wordt niet automatisch verlengd.
+De oorspronkelijke leessleutel is intussen vervangen en ingetrokken. De actieve ticketclient is `besc-discord-tickets-dev`; gebruik de actuele CC-configuratie als bron voor geldigheid en scopes. Geen sleutel wordt automatisch verlengd.

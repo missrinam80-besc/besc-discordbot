@@ -21,7 +21,7 @@ function ticket(v: Record<string, unknown>): Ticket {
     || typeof v.linkStatus !== "string" || !(v.threadId === null || typeof v.threadId === "string" && snowflake.test(v.threadId))) return invalid();
   return v as Ticket;
 }
-export function createTicketApi(config: { apiUrl: string; apiKey: string; guildId: string; ticketParentChannelId: string }, fetcher: typeof fetch = fetch): TicketApi {
+export function createTicketApi(config: { apiUrl: string; apiKey: string; guildId: string; ticketParentChannelId: string; storedParentBindings?: boolean }, fetcher: typeof fetch = fetch): TicketApi {
   // Own-ticket responses can contain 50 external messages of 4000 Unicode characters.
   const request = createTransport(config, fetcher, 8000, 1_048_576);
   async function retryWrite(path: string, body: Record<string, unknown>, key: string) {
@@ -59,7 +59,8 @@ export function createTicketApi(config: { apiUrl: string; apiKey: string; guildI
           || !(v.ticketId === null || typeof v.ticketId === "string" && uuid.test(v.ticketId))
           || !["create_thread", "send_message", "close_thread", "delete_thread"].includes(String(v.kind))
           || (v.kind !== "delete_thread" && (v.ticketId === null || !["open", "in_progress", "waiting_requester", "closed"].includes(String(v.ticketStatus))))
-          || v.guildId !== config.guildId || v.parentChannelId !== config.ticketParentChannelId
+          || v.guildId !== config.guildId || typeof v.parentChannelId !== "string" || !snowflake.test(v.parentChannelId)
+          || !config.storedParentBindings && v.parentChannelId !== config.ticketParentChannelId
           || !(v.threadId === null || typeof v.threadId === "string" && snowflake.test(v.threadId))
           || typeof v.ticketMarker !== "string" || !uuid.test(v.ticketMarker.replace(/^besc-ticket-/, "")) || !v.ticketMarker.startsWith("besc-ticket-")
           || (v.ticketId !== null && v.ticketMarker !== `besc-ticket-${v.ticketId}`)
