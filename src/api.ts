@@ -20,6 +20,8 @@ const codes = new Set(["invalid_client", "guild_not_allowed", "insufficient_scop
   "events_forbidden", "rate_limited", "upstream_unavailable", "server_configuration_unavailable", "invalid_query", "invalid_offset",
   "channel_not_allowed", "thread_not_allowed", "ticket_unavailable", "delivery_unavailable", "idempotency_conflict",
   "source_conflict", "lease_conflict", "thread_conflict", "ticket_closed", "interaction_expired", "ticket_expired", "body_too_large", "json_required",
+  "invalid_answers", "server_unavailable", "revision_unavailable", "intent_unavailable", "intent_expired", "intent_consumed", "intake_unavailable",
+  "linked_account_required", "source_not_allowed", "invalid_delivery_result", "invalid_config", "configuration_too_large",
   "invalid_body", "invalid_fields", "body_timeout", "recipient_no_longer_linked", "slot_delivery_unavailable"]);
 function object(value: unknown): value is Record<string, unknown> { return Boolean(value && typeof value === "object" && !Array.isArray(value)); }
 export function createTransport(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch, timeoutMs = 8000, maxResponseBytes = 65_536) {
@@ -32,9 +34,11 @@ export function createTransport(config: { apiUrl: string; apiKey: string; guildI
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
+      const serialized = body ? JSON.stringify({ ...body, guild_id: config.guildId }) : undefined;
+      if (serialized && Buffer.byteLength(serialized) > 131072) throw new ApiError("body_too_large", 413);
       const response = await fetcher(url, { method: body ? "POST" : "GET", redirect: "error", signal: controller.signal,
         headers: { Authorization: `Bearer ${config.apiKey}`, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}),
-          ...(key ? { "Idempotency-Key": key } : {}) }, body: body ? JSON.stringify({ ...body, guild_id: config.guildId }) : undefined });
+          ...(key ? { "Idempotency-Key": key } : {}) }, body: serialized });
       // Bound decoded response size, including when Content-Length is absent.
       const reader = response.body?.getReader();
       if (!reader) throw new ApiError("invalid_response", 502);

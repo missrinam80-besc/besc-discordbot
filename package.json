@@ -1,9 +1,11 @@
 {
   "name": "besc-discordbot",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.18.0" },
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "check": "tsc --noEmit",
@@ -14,6 +16,11 @@
     "commands:register": "node --env-file=.env src/register.ts --apply",
     "key:generate": "node src/keygen.ts"
   },
-  "dependencies": { "discord.js": "14.27.0" },
-  "devDependencies": { "@types/node": "22.19.0", "typescript": "5.9.3" }
+  "dependencies": {
+    "discord.js": "14.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "typescript": "5.9.3"
+  }
 }

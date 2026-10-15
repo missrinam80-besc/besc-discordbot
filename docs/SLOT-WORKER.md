@@ -2,7 +2,7 @@
 
 ## Bron en grens
 
-Gebouwd vanaf bot-main `14b8e0890ef8e606fd2af77c4d76c70330308214`, tegen CC-main `d7022f659dac52dce7743e4887265c24a9c80de2` (PR #99). Definitieve bron: de aangeleverde release-99 `API-CONTRACT.md` / `API-FIXTURES.json`, gecontroleerd tegen `src/lib/event-slot-bot-api.ts` en migratie `20261014213254_event_slot_bookings.sql` op die CC-commit. De gedeelde fixture staat ongewijzigd in `tests/fixtures/event-slot-bookings.json` en is uitsluitend synthetisch. Ticketing V2 PR #3 is afzonderlijk en niet in deze branch opgenomen.
+Gebouwd vanaf bot-main `14b8e0890ef8e606fd2af77c4d76c70330308214`, tegen CC-main `d7022f659dac52dce7743e4887265c24a9c80de2` (PR #99). Definitieve bron: de aangeleverde release-99 `API-CONTRACT.md` / `API-FIXTURES.json`, gecontroleerd tegen `src/lib/event-slot-bot-api.ts` en migratie `20261014213254_event_slot_bookings.sql` op die CC-commit. De gedeelde fixture staat ongewijzigd in `tests/fixtures/event-slot-bookings.json` en is uitsluitend synthetisch. Deze Ticketing V2-reviewbranch (PR #3) bevat inmiddels ook main met de slotworker uit PR #4. Beide functies houden hun eigen opt-in, scopecontrole en journalbestanden.
 
 Bij afronding opnieuw gecontroleerd tegen CC-main `739d72a58eb1662a0e03d6fc81e1e9cc60cca831` (PR #100): de slot-API, migratie en gedeelde fixtures zijn sinds PR #99 ongewijzigd. De gebruiker bevestigt PR #99/#100 gedeployd op DEV, de migratie, minuutplanning van mail en live mailacceptatie inclusief annulering. Dit zijn gebruikersbevestigingen; deze botchat heeft geen server- of database-inspectie uitgevoerd. Deze wijziging voert geen migratie, clientwijziging, merge, imagepublicatie, deploy, paneelpublicatie of Discord/MEE6-actie uit.
 
