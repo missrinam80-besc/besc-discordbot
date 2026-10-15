@@ -4,7 +4,7 @@
 
 Gebouwd vanaf bot-main `14b8e0890ef8e606fd2af77c4d76c70330308214`, tegen CC-main `d7022f659dac52dce7743e4887265c24a9c80de2` (PR #99). Definitieve bron: de aangeleverde release-99 `API-CONTRACT.md` / `API-FIXTURES.json`, gecontroleerd tegen `src/lib/event-slot-bot-api.ts` en migratie `20261014213254_event_slot_bookings.sql` op die CC-commit. De gedeelde fixture staat ongewijzigd in `tests/fixtures/event-slot-bookings.json` en is uitsluitend synthetisch. Ticketing V2 PR #3 is afzonderlijk en niet in deze branch opgenomen.
 
-CC-migratie en DEV-deploy zijn nog niet bevestigd. Deze wijziging voert geen migratie, clientwijziging, merge, imagepublicatie, deploy, paneelpublicatie of Discord/MEE6-actie uit.
+Bij afronding opnieuw gecontroleerd tegen CC-main `739d72a58eb1662a0e03d6fc81e1e9cc60cca831` (PR #100): de slot-API, migratie en gedeelde fixtures zijn sinds PR #99 ongewijzigd. De gebruiker bevestigt PR #99/#100 gedeployd op DEV, de migratie, minuutplanning van mail en live mailacceptatie inclusief annulering. Dit zijn gebruikersbevestigingen; deze botchat heeft geen server- of database-inspectie uitgevoerd. Deze wijziging voert geen migratie, clientwijziging, merge, imagepublicatie, deploy, paneelpublicatie of Discord/MEE6-actie uit.
 
 E-mail blijft standaard. De bot heeft een afzonderlijke lokale opt-in `BESC_SLOT_WORKER_ENABLED=false`; de CC-flag `BESC_SLOT_DISCORD_NOTIFICATIONS_ENABLED` blijft uitsluitend CC-configuratie. Alleen wanneer de bot-opt-in expliciet aanstaat, vereist opstart de scope `slots:deliver` en een absoluut `BESC_BOT_STATE_DIR` op duurzame opslag. Scope ontbreekt: geen Discordlogin en geen claim. Worker uit: geen slotrequests, geen journal en geen DM; de bestaande runtime blijft werken.
 
@@ -61,4 +61,4 @@ Verander de client-ID of verwijder/vervang het volume niet om een vastgelopen po
 
 `npm run check`, `npm test`, `npm run build`. De suite gebruikt de gedeelde CC-fixture, echte lokale HTTP voor protocol/annulering en gesimuleerde Discordantwoorden voor weigeringen, verloren responses en deadlines. Hersteltests heropenen het echte bestandsjournal en controleren dat geen tweede send ontstaat. CI controleert daarnaast Docker/Compose en twee opeenvolgende niet-root/read-only containers met hetzelfde journalvolume. Dit bewijst geen live migratie, Gmailfallback, Discordaflevering of huidige scopeconfiguratie.
 
-Zie [DEV-acceptatieplan](SLOT-DEV-ACCEPTANCE.md) en [afzonderlijke CC-overdracht](SLOT-CC-HANDOFF.md).
+Zie [DEV-acceptatieplan](SLOT-DEV-ACCEPTANCE.md), [exacte aanvullende configuratie](SLOT-CONFIGURATION.md) en [afzonderlijke CC-overdracht](SLOT-CC-HANDOFF.md).

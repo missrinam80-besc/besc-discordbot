@@ -2,14 +2,16 @@
 
 Dit is een uitvoerbaar plan voor **na afzonderlijke toestemming**; geen van onderstaande live handelingen is met deze PR uitgevoerd. E-mail blijft standaard en beide opt-ins blijven uit. Gebruik uitsluitend herkenbare `TESTFIXTURE — NIET PUBLICEREN`-boekingen en vooraf aangewezen testaccounts.
 
-## Eerst bevestigen
+## Bevestigde uitgangssituatie en resterende voorbereiding
 
-1. Bevestig CC PR #99 op `d7022f659dac52dce7743e4887265c24a9c80de2`, de uitgevoerde migratie `20261014213254_event_slot_bookings.sql` en de werkelijk draaiende DEV-image/health. Merge alleen bewijst geen migratie of deploy.
-2. Bewijs de bestaande Gmail-scheduler en e-mailstroom: verificatie, ontvangst, beslissing en annulering, met echte testmail. Geen verificatiecodes, adressen of sleutels in rapport/chat. E-mail blijft gekozen tenzij een gecontroleerde tester expliciet Discord kiest.
+1. Reeds door de gebruiker bevestigd: CC PR #99/#100 gemerged en gedeployd op DEV; migratie geslaagd. CC-main `739d72a58eb1662a0e03d6fc81e1e9cc60cca831` wijzigt het contract van PR #99 niet. Deze botchat heeft de live omgeving niet zelf geïnspecteerd. Geen nieuwe migratie of CC-deploy nodig voor deze botcode.
+2. Reeds door de gebruiker live bevestigd: Gmail-verwerking elke minuut; verificatie, ontvangst, voorlopige agenda, eigenaarmelding, goedkeuring en annulering met mail. Annulering verdwijnt uit agenda/PDF, boekingshistorie blijft. Behoud deze werking en voer tijdens Discordacceptatie alleen de gerichte fallback-/regressieproeven hieronder uit. Geen verificatiecodes, adressen of sleutels in rapport/chat. E-mail blijft standaard.
 3. Review en merge van de bot-PR apart goedkeuren; daarna imagepublicatie en botdeploy op de aparte server `104.248.194.147` apart goedkeuren. Geen workflow-dispatch in deze oplevering. Volledige digest vastleggen en rollbackimage/config veilig bewaren.
 4. Laat CC de actieve `besc-discord-tickets-dev` configuratie veilig teruglezen: organisatie `999b6af9-479c-4082-b9d8-fa0a78aefac5`, guild `1067893182387474432`, bestaande scopes/expiry/revocation. De bot-applicatie is `1558542661265129474`. Deel geen sleutel/hash/token. Voeg alleen na toestemming `slots:deliver` toe; bestaande scopes, client-ID, key, binding en overige clients behouden. Zie afzonderlijke overdracht.
 5. Bewijs één botinstantie, duurzame schrijfbare `/app/state`-volume met niet-rootrechten, beveiligde backup en 60 seconden stoptermijn. Geen volume-reset of `down -v`. Inspecteer het journal alleen via beveiligde beheerkanalen: het bevat leasegegevens.
 6. Bot-opt-in en de **aparte CC-flag** uitsluitend tijdelijk en afzonderlijk activeren voor afgesproken acceptatie. CC-flag is globaal, geen ingebouwde tester-allowlist: bepaal vooraf hoe de DEV-test afgeschermd wordt en dat alleen aangewezen testers de DM-keuze gebruiken. Geen productiepagina of echte boekingen gebruiken.
+
+De minimale client- en botinstellingen staan exact in [SLOT-CONFIGURATION.md](SLOT-CONFIGURATION.md). Scope en beide opt-ins zijn nog niet geactiveerd.
 
 ## Testvolgorde en bewijs
 
@@ -29,6 +31,7 @@ Dit is een uitvoerbaar plan voor **na afzonderlijke toestemming**; geen van onde
 | Herstart / harde crash | Normale herstart, daarna afzonderlijk gecontroleerde harde stop | Normaal: actieve poging afronden en journal heropenen. Hard: proceslock blokkeert nieuwe schrijver; operator controleert proces, bewaart journal, verwijdert alleen stale lock. Geen automatische reset. |
 | CC / Discord uitval | Lokaal 401/403/429/503 en trage responsebody injecteren; DEV alleen afgeschermd | Geen dispatch zonder `ok:true`; geen verborgen retries; echte deadlines, geen inhoud/tokens in logs. |
 | Bestaande threads | Bestaand ticket lezen, Discord→CC, extern CC→Discord, interne notitie, sluiten/vergrendelen en bestaande verwijderketen nalopen | Geen nieuwe thread of dubbele antwoorden, interne notitie uitsluitend CC; ticketretentie 180 dagen behouden. Slotberichten krijgen geen ticketretentie. |
+| Annulering en historie | Testboeking met gekozen Discordkanaal annuleren en agenda/PDF/historie controleren | Annuleringsbericht volgens CC-queue, geen actief item in agenda/PDF; historie blijft behouden. E-mailfallback bij gesloten DM blijft werken. |
 | Afronding | Beide nieuwe opt-ins terug uit zetten tenzij activering expliciet wordt goedgekeurd; journal behouden | E-mail blijft standaard, overige functionaliteit blijft werken; open onzekerheden expliciet vastleggen. |
 
 API/fault-injectiontests draaien lokaal met synthetische fixtures; verstuur geen echte verificatiecodes of sleutels naar een publieke proxy. Een lokale simulatie wordt als lokaal gerapporteerd, niet als live acceptatie. Gebruik geen ongecontroleerde kill/replay op echte boekingen.
