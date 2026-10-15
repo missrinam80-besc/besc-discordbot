@@ -22,6 +22,8 @@ Kopieer `.env.example` naar `.env` en vul de zes instellingen in. Token en oorsp
 
 De bot controleert de API-client en drie leesrechten bij opstart en controleert API-toegang opnieuw per commando. De API vertrouwt de geauthenticeerde bot om de echte commandactor door te geven; de bot gebruikt uitsluitend `interaction.user.id`.
 
+De optionele [slotberichtenworker](docs/SLOT-WORKER.md) gebruikt uitsluitend `slots:deliver` en de door CC gekozen ontvanger/inhoud. Hij staat standaard uit (`BESC_SLOT_WORKER_ENABLED=false`). E-mail blijft standaard; de aparte CC-keuze `BESC_SLOT_DISCORD_NOTIFICATIONS_ENABLED` wordt hierdoor niet geactiveerd. De bestaande tickets, privéthreads, interne notities en verwijderketen blijven behouden. Het lokale verzendjournal hoort op de duurzame `/app/state`-volume; verwijder die volume niet bij een update.
+
 Gebruik de bevestigde testserver/applicatie, gewone `Guilds`-intent en geen privileged intents of Administrator. Installatiescopes: `bot`, `applications.commands`, `permissions=0`. `npm run commands:preview` wijzigt niets; `npm run commands:register` registreert na toestemming uitsluitend het eigen `/besc`-commando. DEV-commands zijn al geregistreerd. Containerstart registreert geen commands.
 
 ## Container

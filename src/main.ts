@@ -7,6 +7,10 @@ import { DiscordTickets } from "./ticket-discord.ts";
 import { createTicketHandler } from "./ticket-handler.ts";
 import { createTicketWorker } from "./ticket-worker.ts";
 import { createTicketIngest } from "./ticket-ingest.ts";
+import { createSlotApi, slotScope } from "./slot-api.ts";
+import { createSlotDiscord } from "./slot-discord.ts";
+import { FileSlotState } from "./slot-state.ts";
+import { createSlotWorker } from "./slot-worker.ts";
 
 async function main() {
   const config = loadConfig();
@@ -15,6 +19,7 @@ async function main() {
   const identity = await api.identity();
   if (!["identity:read", "account:read", "events:read"].every(s => identity.scopes.includes(s))) throw Error("API-client mist benodigde leesrechten.");
   if (config.ticketParentChannelId && (identity.readOnly || !ticketScopes.every(s => identity.scopes.includes(s)))) throw Error("Ticketclient mist benodigde ticketrechten.");
+  if (config.slotWorkerEnabled && !identity.scopes.includes(slotScope)) throw Error("Slotworker mist slots:deliver.");
   const client = new Client({ intents: [GatewayIntentBits.Guilds, ...(config.ticketParentChannelId
     ? [GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] : [])],
     rest: { timeout: 8000, retries: 0, rejectOnRateLimit: () => true }, allowedMentions: { parse: [] } });
@@ -26,20 +31,26 @@ async function main() {
   const worker = ticketApi && discord ? createTicketWorker(ticketApi, discord, log) : undefined;
   const ingest = ticketApi && discord ? createTicketIngest(ticketApi, discord, log) : undefined;
   const timers: ReturnType<typeof setInterval>[] = [];
+  const slotLog = (code: string) => console.error(JSON.stringify({ type: "slot", code }));
+  // Open the bound durable journal only when explicitly enabled. The default performs zero slot requests.
+  const slotState = config.slotWorkerEnabled ? new FileSlotState(config.stateDir!, {
+    apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }) : undefined;
+  const slots = slotState ? createSlotWorker(createSlotApi(config), createSlotDiscord(config.token), slotState, slotLog) : undefined;
   let enabled = false;
   client.once(Events.ClientReady, ready => { void (async () => {
     if (ready.application.id !== config.applicationId) {
-      console.error("Bot-token hoort niet bij de ingestelde applicatie."); client.destroy(); process.exitCode = 1; return;
+      console.error("Bot-token hoort niet bij de ingestelde applicatie."); slotState?.close(); client.destroy(); process.exitCode = 1; return;
     }
     if (discord) await discord.parent();
     enabled = true;
+    if (slots) { void slots.tick(); timers.push(setInterval(() => { void slots.tick(); }, 15_000)); }
     console.info("BESC-bot verbonden. Alleen /besc; geen moderatie of rolbeheer.");
     if (worker && ingest) {
       void worker(); void ingest.sync();
       timers.push(setInterval(() => { void worker(); }, 5000), setInterval(() => { void ingest.sync(); }, 60_000));
       console.info("Ticketing actief op het ingestelde intakekanaal; bijlagen en berichtwijzigingen worden niet geïmporteerd.");
     }
-  })().catch(() => { log("ticket_startup_configuration_unavailable"); client.destroy(); process.exitCode = 1; });
+  })().catch(() => { log("ticket_startup_configuration_unavailable"); slotState?.close(); client.destroy(); process.exitCode = 1; });
   });
   client.on(Events.InteractionCreate, interaction => {
     if (!enabled || !(interaction.isChatInputCommand() || interaction.isModalSubmit())) return;
@@ -51,9 +62,10 @@ async function main() {
   client.on(Events.MessageCreate, message => { if (enabled && ingest) void ingest.message(message); });
   client.on(Events.ShardResume, () => { if (enabled && ingest) void ingest.sync(); });
   client.on(Events.Error, () => console.error("Discord-verbinding meldt een fout."));
-  const stop = () => { enabled = false; for (const timer of timers) clearInterval(timer); client.destroy(); };
+  const stop = () => { enabled = false; for (const timer of timers) clearInterval(timer);
+    void (async () => { await slots?.stop(); slotState?.close(); client.destroy(); })().catch(() => { client.destroy(); process.exitCode = 1; }); };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
-  await client.login(config.token);
+  try { await client.login(config.token); } catch (e) { slotState?.close(); throw e; }
 }
 main().catch(() => { console.error("Bot niet gestart. Controleer instellingen en API-bereikbaarheid; geheimen worden niet gelogd."); process.exitCode = 1; });
