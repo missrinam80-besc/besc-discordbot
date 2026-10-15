@@ -1,0 +1,11 @@
+{
+  "classification":"TESTFIXTURE — NIET PUBLICEREN",
+  "version":"event-slots-v1",
+  "guild_id":"100000000000000001",
+  "worker_id":"fixture-worker",
+  "delivery":{"id":"30000000-0000-4000-8000-000000000001","lease_token":"40000000-0000-4000-8000-000000000001","lease_until":"2099-10-14T10:02:00Z","discord_user_id":"200000000000000001","subject":"TESTFIXTURE — Aanvraag ontvangen","body":"Je aanvraag wacht op bevestiging. TESTFIXTURE — Geen echte boeking.","reference":"BESC-SLOT-30000000-0000-4000-8000-000000000001"},
+  "claim":{"guild_id":"100000000000000001","worker_id":"fixture-worker"},
+  "dispatch":{"guild_id":"100000000000000001","worker_id":"fixture-worker","id":"30000000-0000-4000-8000-000000000001","lease_token":"40000000-0000-4000-8000-000000000001"},
+  "sent":{"guild_id":"100000000000000001","worker_id":"fixture-worker","id":"30000000-0000-4000-8000-000000000001","lease_token":"40000000-0000-4000-8000-000000000001","message_id":"300000000000000001"},
+  "fail":{"guild_id":"100000000000000001","worker_id":"fixture-worker","id":"30000000-0000-4000-8000-000000000001","lease_token":"40000000-0000-4000-8000-000000000001","error_code":"dm_closed"}
+}

@@ -7,15 +7,19 @@ services:
     restart: unless-stopped
     init: true
     read_only: true
+    volumes:
+      - bot-state:/app/state
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     tmpfs:
       - /tmp:size=16m,mode=1777
-    stop_grace_period: 20s
+    stop_grace_period: 60s
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+volumes:
+  bot-state:
