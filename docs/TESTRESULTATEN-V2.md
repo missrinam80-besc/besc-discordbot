@@ -1,5 +1,15 @@
 # Lokale validatie ticketing V2
 
+## Bijgewerkt tegen main op 15 oktober 2026
+
+PR #3 is samengevoegd met bot-main `26b7762f9a005ba87e4a0a419aad95eebdbbf537` (slotworker PR #4). Dit is een update van de bestaande reviewbranch, geen merge van PR #3 naar main. Conflicten in runtime, configuratie, foutcodes en documentatie zijn gecombineerd met behoud van beide functies. Dubbele volume- en mapaanmaakregels zijn verwijderd. Eén duurzame volume bevat afzonderlijke journals; beide opt-ins blijven standaard uit.
+
+Typecontrole, productiebuild en **197 tests slagen**, zonder skips: 68 bestaande tests, 66 V2-tests, 56 slotworkertests en 7 combinatieproeven. De combinatieproeven behandelen alle vier schakelaarcombinaties, absolute duurzame opslag, afzonderlijke kanaalvereisten, gelijktijdig bewaren/heropenen en behoud van slot-verzendbewijs bij beschadigde V2-state. De slotworker blijft uitsluitend na bevestigde dispatch sturen; herstel herhaalt geen DM. Ticketcontexten, actorgrens, interne-notitieprivacy en 180-dagenketen blijven behouden.
+
+De bijgewerkte CI controleert ook beide opslagpaden, Docker/Compose, niet-rootgebruik en een read-only container. Zie PR #3 voor de definitieve CI op de nieuwe head. Geen imagepublicatie, deploy, scopewijziging, paneelpublicatie of Discord/MEE6-actie uitgevoerd. De oudere resultaten hieronder blijven als historische verificatie bewaard.
+
+## Oorspronkelijke V2-validatie
+
 Gecontroleerd op 12 oktober 2026. Botbasis `14b8e0890ef8e606fd2af77c4d76c70330308214`; CC-contractbasis `fac133d0972e4085004ebdd6745108288b7c3665`. Beide main-commits zijn tijdens deze taak opnieuw gecontroleerd. Contractversie `cc-ticketing-v2-1`; Node 24.14.0; discord.js 14.27.0; TypeScript 5.9.3.
 
 | Controle | Resultaat |

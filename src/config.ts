@@ -1,4 +1,6 @@
-export type BotConfig = { token: string; applicationId: string; guildId: string; apiUrl: string; webUrl: string; apiKey: string; ticketParentChannelId?: string; ticketingV2: boolean; stateDir?: string };
+import { isAbsolute } from "node:path";
+export type BotConfig = { token: string; applicationId: string; guildId: string; apiUrl: string; webUrl: string; apiKey: string; ticketParentChannelId?: string;
+  ticketingV2: boolean; slotWorkerEnabled?: boolean; stateDir?: string };
 const snowflake = /^[1-9]\d{16,19}$/;
 export function validateUrl(value: string, allowLocal = false) {
   const url = new URL(value);
@@ -23,7 +25,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BotConfig {
   if (ticketParentChannelId && !snowflake.test(ticketParentChannelId)) throw Error("Ongeldig ticketkanaal-ID.");
   if (env.BESC_TICKETING_V2 && !["true", "false"].includes(env.BESC_TICKETING_V2)) throw Error("Ongeldige V2-instelling.");
   const ticketingV2 = env.BESC_TICKETING_V2 === "true";
+  const slotFlag = env.BESC_SLOT_WORKER_ENABLED?.trim() || "false";
+  if (!["false", "true"].includes(slotFlag)) throw Error("BESC_SLOT_WORKER_ENABLED moet true of false zijn.");
   const stateDir = env.BESC_BOT_STATE_DIR?.trim();
-  if (ticketingV2 && (!ticketParentChannelId || !stateDir)) throw Error("V2 vereist het legacykanaal en een duurzame state-directory.");
-  return { ...config, ticketingV2, ...(stateDir ? { stateDir } : {}), ...(ticketParentChannelId ? { ticketParentChannelId } : {}) };
+  if ((ticketingV2 || slotFlag === "true") && (!stateDir || !isAbsolute(stateDir))) throw Error("Workers vereisen een absolute, duurzame BESC_BOT_STATE_DIR.");
+  if (ticketingV2 && !ticketParentChannelId) throw Error("V2 vereist het legacykanaal.");
+  return { ...config, ticketingV2, ...(stateDir ? { stateDir } : {}), ...(ticketParentChannelId ? { ticketParentChannelId } : {}),
+    ...(slotFlag === "true" ? { slotWorkerEnabled: true } : {}) };
 }

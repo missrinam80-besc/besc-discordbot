@@ -12,7 +12,7 @@ WORKDIR /app
 LABEL org.opencontainers.image.source="https://github.com/missrinam80-besc/besc-discordbot"
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
+RUN mkdir -p /app/state && chown node:node /app/state && chmod 700 /app/state
 COPY --from=build --chown=node:node /app/dist ./dist
-RUN mkdir -p /app/state && chown node:node /app/state
 USER node
 CMD ["node", "dist/main.js"]

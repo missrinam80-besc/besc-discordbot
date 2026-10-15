@@ -4,18 +4,18 @@ services:
     image: ${BESC_BOT_IMAGE:?Set BESC_BOT_IMAGE to a tested image tag or digest}
     env_file:
       - ${BESC_BOT_ENV_FILE:?Set BESC_BOT_ENV_FILE to the absolute server secret file path}
-    volumes:
-      - bot-state:/app/state
     restart: unless-stopped
     init: true
     read_only: true
+    volumes:
+      - bot-state:/app/state
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     tmpfs:
       - /tmp:size=16m,mode=1777
-    stop_grace_period: 20s
+    stop_grace_period: 60s
     logging:
       driver: json-file
       options:
