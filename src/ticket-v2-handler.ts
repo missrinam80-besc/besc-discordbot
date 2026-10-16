@@ -1,4 +1,4 @@
-import { MessageFlags, ModalBuilder, type ChatInputCommandInteraction, type ButtonInteraction, type StringSelectMenuInteraction, type ModalSubmitInteraction } from "discord.js";
+import { DiscordAPIError, MessageFlags, ModalBuilder, type ChatInputCommandInteraction, type ButtonInteraction, type StringSelectMenuInteraction, type ModalSubmitInteraction } from "discord.js";
 import { ApiError } from "./api.ts";
 import type { V2Api, IntentSource } from "./ticket-v2-api.ts";
 import { uuid } from "./ticket-api.ts";
@@ -6,6 +6,31 @@ import { features, answersFor, type TypeRevision, type TicketConfig } from "./ti
 import { discordEmbed, panelCustomId } from "./ticket-v2-discord.ts";
 export type V2Interaction = ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction | ModalSubmitInteraction;
 type CachedForm = { actor: string; revision: TypeRevision; expires: number };
+// Never log Discord exceptions: their URL and request body contain interaction tokens and answers.
+export function safeV2Diagnostic(error: unknown, openingModal: boolean): string[] {
+  const prefix = openingModal ? "typed_show_modal" : "typed_interaction";
+  if (error instanceof DiscordAPIError) {
+    const code = [10062, 40060, 50001, 50013, 50035].includes(Number(error.code)) ? String(Number(error.code)) : "other";
+    const result = [`${prefix}_discord_${code}`];
+    if (code === "50035") {
+      const allowed = new Set(["data", "custom_id", "title", "components", "component", "type", "label", "description", "style", "required", "min_length", "max_length", "placeholder", "options", "value", "min_values", "max_values"]);
+      const walk = (value: unknown, path: string[], depth: number) => {
+        if (!value || typeof value !== "object" || depth > 10 || result.length >= 11) return;
+        if (Object.hasOwn(value, "_errors") && path.length) result.push(`${prefix}_field_${path.join(".")}`);
+        for (const [key, child] of Object.entries(value)) {
+          if (allowed.has(key) || /^(?:[0-9]|1[0-9]|2[0-4])$/.test(key)) walk(child, [...path, key], depth + 1);
+        }
+      };
+      if ("errors" in error.rawError) walk(error.rawError.errors, [], 0);
+    }
+    return result;
+  }
+  if (error instanceof ApiError) {
+    const code = ["invalid_config", "invalid_response", "api_timeout", "api_unavailable", "upstream_unavailable", "intent_expired", "intent_unavailable", "revision_unavailable", "source_not_allowed", "intake_unavailable", "intent_consumed", "linked_account_required", "invalid_answers", "rate_limited"].includes(error.code) ? error.code : "other";
+    return [`${prefix}_api_${code}`];
+  }
+  return [`${prefix}_unexpected`];
+}
 export function modalFor(t: TypeRevision, intent: string) {
   return ModalBuilder.from({ custom_id: `besc:v2:m:${intent}:${t.revisionId}`, title: t.formTitle, components: t.questions.map(q => ({
     type: 18 as const, label: q.label, ...(q.description ? { description: q.description } : {}),
@@ -42,6 +67,7 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
   return async (i: V2Interaction): Promise<boolean> => {
     const slash = i.isChatInputCommand() && i.commandName === "besc" && i.options.getSubcommandGroup(false) === "ticket" && i.options.getSubcommand() === "openen";
     if (!slash && (i.isChatInputCommand() || !i.customId.startsWith("besc:v2:"))) return false;
+    let openingModal = false;
     try {
       if (i.guildId !== guild) { await i.reply({ content: "Dit ticket werkt alleen op de ingestelde server.", flags: MessageFlags.Ephemeral }); return true; }
       if (!i.isChatInputCommand() && !i.isModalSubmit() && i.message.author.id !== app) {
@@ -55,6 +81,7 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
         if (saved && saved.expires <= now()) { forms.delete(intent); throw new ApiError("intent_expired", 410); }
         if (saved && saved.actor === i.user.id && saved.revision.revisionId === revision && saved.expires > now()) {
           // No network or defer before showModal: preserve Discord's initial response deadline.
+          openingModal = true;
           await i.showModal(modalFor(saved.revision, intent)); return true;
         }
         await i.deferUpdate();
@@ -104,6 +131,7 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
       cache(intent.intentId, { actor: i.user.id, revision: immutable, expires: Date.parse(intent.expiresAt) });
       await i.editReply({ content: "Lees de uitleg en vul daarna het formulier in.", embeds: [discordEmbed(immutable.embed)], components: button(intent.intentId, immutable.revisionId), allowedMentions: { parse: [] } });
     } catch (e) {
+      for (const code of safeV2Diagnostic(e, openingModal)) log(code);
       try {
         const content = v2Error(e);
         if (i.deferred || i.replied) await i.editReply({ content, embeds: [], components: [], allowedMentions: { parse: [] } });
