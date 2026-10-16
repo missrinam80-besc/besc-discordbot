@@ -2,6 +2,7 @@ import { ChannelType, PermissionFlagsBits, type Client, type TextChannel, type M
 import { ConfigFailure, type ConfigEffects } from "./ticket-v2-worker.ts";
 import { type ConfigDelivery, type TypeRevision, type TicketEmbed } from "./ticket-v2-schema.ts";
 import type { V2State } from "./ticket-v2-state.ts";
+import { ticketMenuBaseId } from "./ticket-menu.ts";
 export const permissionChecks = [
   ["view_channel", PermissionFlagsBits.ViewChannel], ["send_messages", PermissionFlagsBits.SendMessages],
   ["create_private_threads", PermissionFlagsBits.CreatePrivateThreads], ["send_messages_in_threads", PermissionFlagsBits.SendMessagesInThreads],
@@ -18,13 +19,13 @@ export function panelOptions(d: ConfigDelivery): MessageCreateOptions {
 }
 function rows(message: Message) { return message.components.map(c => c.toJSON()); }
 function marked(message: Message, panel: string) {
-  return rows(message).some(row => "components" in row && row.components.some(c => "custom_id" in c && typeof c.custom_id === "string" && c.custom_id.startsWith(`besc:v2:p:${panel}:`)));
+  return rows(message).some(row => "components" in row && row.components.some(c => "custom_id" in c && typeof c.custom_id === "string" && ticketMenuBaseId(c.custom_id)?.startsWith(`besc:v2:p:${panel}:`)));
 }
 function samePublication(message: Message, d: ConfigDelivery) {
   const payload = panelOptions(d);
   const normalize = (input: unknown) => {
     const row = input as { type: number; components?: { type: number; custom_id?: string; disabled?: boolean; placeholder?: string; min_values?: number; max_values?: number; options?: unknown }[] };
-    return { type: row.type, components: row.components?.map(c => ({ type: c.type, custom_id: c.custom_id, disabled: c.disabled ?? false,
+    return { type: row.type, components: row.components?.map(c => ({ type: c.type, custom_id: c.custom_id ? ticketMenuBaseId(c.custom_id) ?? c.custom_id : c.custom_id, disabled: c.disabled ?? false,
       placeholder: c.placeholder, min_values: c.min_values ?? 1, max_values: c.max_values ?? 1,
       options: Array.isArray(c.options) ? c.options.map((o: { label?: string; value?: string; description?: string; emoji?: unknown; default?: boolean }) => ({ label: o.label, value: o.value,
         ...(o.description ? { description: o.description } : {}), ...(o.emoji ? { emoji: o.emoji } : {}), ...(o.default ? { default: o.default } : {}) })) : c.options })) };

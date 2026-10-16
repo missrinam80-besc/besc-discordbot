@@ -6,6 +6,7 @@ Deze botuitbreiding voert het definitieve CC-contract `cc-ticketing-v2-1` uit. D
 
 - `/besc ticket openen` toont bij ingeschakelde V2 gepubliceerde tickettypes in een privékeuzelijst, met pagina’s boven 25 types.
 - De panelen gebruiken klassieke embeds en een keuzelijst. Na typekeuze krijgt de aanvrager privé uitleg en de knop Formulier invullen.
+- Bij typekeuze worden de row-/component-ID en een strikt begrensde UI-nonce vernieuwd om de dropdown opnieuw op te bouwen. Deze nonce verandert geen CC-paneel- of formuliereditie. De broncontrole en publicatiereconciliatie vergelijken de oorspronkelijke paneelbinding; publicatie-inhoud en disabled-status blijven bepalend. Dit is lokaal getest; het zichtbare resetgedrag vereist na de botupdate opnieuw live Discordacceptatie.
 - De modal gebruikt moderne Label-componenten voor korte/lange tekst en single/multi-keuzes. Maximaal vijf vragen; geen extra verborgen onderwerpvraag.
 - Intent en intake gebruiken de echte interaction-ID als duurzame CC-idempotencykey. Retries gebruiken exact dezelfde actor, editie en payload. CC registreert atomisch ticket, snapshot en opdrachten.
 - Oude intents houden hun eigen editie. Bij lokale cacheverliezen wordt die editie opgehaald en een nieuwe knopinteraction gevraagd; een modal wordt niet na een defer getoond.

@@ -5,6 +5,7 @@ import { DiscordAPIError, MessageFlags } from "discord.js";
 import { ApiError } from "../src/api.ts";
 import { createV2Handler, type V2Interaction } from "../src/ticket-v2-handler.ts";
 import { panelCustomId } from "../src/ticket-v2-discord.ts";
+import { ticketMenuBaseId } from "../src/ticket-menu.ts";
 import type { V2Api } from "../src/ticket-v2-api.ts";
 const f=JSON.parse(readFileSync(new URL('./fixtures/ticketing-v2.fixtures.json',import.meta.url),'utf8'));
 const guild=f.configResponse.guildId,app=f.publicationDelivery.payload.applicationId,user='111111111111111111',revision=f.typeRevisionResponse.typeRevision.revisionId,intent=f.intentResponse.intentId;
@@ -48,7 +49,7 @@ test('Gedeeld paneel reset de dropdown vóór API-verkeer en houdt uitleg en fou
  await createV2Handler(api({config:async()=>{x.events.push('api');return f.configResponse;},intent:async()=>{writes++;return f.intentResponse;}}),guild,app,async()=>{},()=>{})(x.i);
  assert.deepEqual(x.events,['deferUpdate','fetch','edit','api','followUp']);assert.equal(writes,1);
  const reset=x.replies[0];assert.deepEqual(Object.keys(reset).sort(),['allowedMentions','components']);
- assert.equal(reset.components[0].components[0].custom_id,x.raw.customId);assert.equal(reset.components[0].components[0].options[0].default,false);
+ assert.notEqual(reset.components[0].components[0].custom_id,x.raw.customId);assert.equal(ticketMenuBaseId(reset.components[0].components[0].custom_id),x.raw.customId);assert.equal(reset.components[0].components[0].options[0].default,false);
  assert.equal(reset.components[0].components[0].placeholder,'Kies een tickettype');assert.equal(original.components[0].options[0].default,true);
  assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);assert.match(x.replies.at(-1).content,/Lees de uitleg/);
 });
@@ -83,6 +84,30 @@ for(const change of ['disabled','new_revision','other_author'] as const)test(`Ve
 test('Privékeuzelijst uit slashcommando reset zonder kanaalfetch',async()=>{
  const x=interaction('select');await createV2Handler(api(),guild,app,async()=>{},()=>{})(x.i);
  assert.deepEqual(x.events,['deferUpdate','edit','followUp']);assert.equal(x.replies[0].components[0].components[0].options[0].default,false);assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
+});
+
+test('Vernieuwde en oudere UI-nonces blijven op exact hetzelfde paneel gebonden, ook na handlerrestart',async()=>{
+ const p=f.configResponse.panels[0],base=panelCustomId(p.panelId,p.revisionId);const sources:any[]=[];
+ for(const clicked of [base,`${base}:0123456789abcdef`]){
+  const x=interaction('select',{customId:clicked});x.raw.message.flags.bitfield=0;
+  x.raw.message.fetch=async()=>({...x.raw.message,components:[{toJSON:()=>({type:1,id:20,components:[{type:3,id:21,custom_id:`${base}:fedcba9876543210`,options:[{label:'TESTFIXTURE',value:revision,default:true}]}]})}]});
+  await createV2Handler(api({intent:async(_a,_r,source)=>{sources.push(source);return f.intentResponse;}}),guild,app,async()=>{},()=>{})(x.i);
+  const row=x.replies[0].components[0],menu=row.components[0];
+  assert.notEqual(row.id,20);assert.notEqual(menu.id,21);assert.notEqual(row.id,menu.id);
+  assert.notEqual(menu.custom_id,clicked);assert.notEqual(menu.custom_id,`${base}:fedcba9876543210`);
+  assert.equal(menu.custom_id.length,100);assert.equal(ticketMenuBaseId(menu.custom_id),base);assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
+ }
+ assert.equal(sources.length,2);for(const source of sources)assert.deepEqual(source,{source:'panel',panel_id:p.panelId,panel_revision_id:p.revisionId,channel_id:p.channelId,message_id:p.messageId});
+});
+
+test('Ongeldige UI-nonce en publieke slashkeuzelijst kunnen geen bronbinding omzeilen',async()=>{
+ const p=f.configResponse.panels[0];let writes=0;
+ for(const customId of [`${panelCustomId(p.panelId,p.revisionId)}:arbitrary`,`${panelCustomId(p.panelId,p.revisionId)}:0123456789abcdef:extra`,'besc:v2:choose:0123456789abcdef']){
+  const x=interaction('select',{customId});x.raw.message.flags.bitfield=0;
+  await createV2Handler(api({intent:async()=>{writes++;return f.intentResponse;}}),guild,app,async()=>{},()=>{})(x.i);
+  assert.ok(!x.events.includes('edit'));assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
+ }
+ assert.equal(writes,0);
 });
 for(const [name,change]of [
  ['verkeerde guild',{guildId:'222222222222222222'}],['niet-eigen paneel',{message:{id:f.configResponse.panels[0].messageId,author:{id:'222222222222222222'},flags:{bitfield:0}}}],

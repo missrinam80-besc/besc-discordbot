@@ -56,6 +56,28 @@ test("Mapped publicatie met verloren edit-ack wordt niet opnieuw aangepast",asyn
  const effect=new DiscordConfigEffects(mock.client,guild,app,state());await assert.rejects(effect.execute(d,async()=>d));
  const r={...d,reconcile:true};await effect.execute(r,async()=>r);assert.equal(mock.edits(),1);assert.equal(mock.sends(),0);
 });
+
+test("UI-resetnonce en component-IDs veranderen de publicatie-identiteit niet bij reconciliatie of uitschakeling",async()=>{
+ const mock=discord(),d=delivery({messageId:'111111111111111111',reconcile:true}),payload=panelOptions(d) as any;
+ payload.components[0].id=100;payload.components[0].components[0].id=101;
+ payload.components[0].components[0].custom_id+=':0123456789abcdef';
+ payload.components[0].components[0].options=payload.components[0].components[0].options.map((o:any)=>({...o,default:false}));
+ const message=mock.message(d.messageId!,payload),effects=new DiscordConfigEffects(mock.client,guild,app,state());
+ await effects.execute(d,async()=>d);assert.equal(mock.edits(),0);assert.equal(mock.sends(),0);
+ const disable=delivery({kind:'disable_panel',messageId:d.messageId});await effects.execute(disable,async()=>disable);
+ assert.equal(mock.edits(),1);assert.equal(message.components[0].toJSON().components[0].disabled,true);
+});
+
+test("UI-resetnonce maskeert geen andere revisie of gewijzigde publicatie-inhoud",async()=>{
+ for(const change of ['revision','label']){
+  const mock=discord(),d=delivery({messageId:'111111111111111111'}),payload=panelOptions(d) as any;
+  const menu=payload.components[0].components[0];menu.custom_id+=':0123456789abcdef';
+  if(change==='revision')menu.custom_id=panelCustomId(d.panelId!,'20000000-0000-4000-8000-000000000099')+':0123456789abcdef';
+  else menu.options[0].label='OTHER TESTFIXTURE';
+  mock.message(d.messageId!,payload);await new DiscordConfigEffects(mock.client,guild,app,state()).execute(d,async()=>d);
+  assert.equal(mock.edits(),1);assert.equal(mock.sends(),0);
+ }
+});
 test("Dubbele paneelmarkers blokkeren uitvoering",async()=>{
  const mock=discord(),d=delivery();mock.message('111111111111111111',panelOptions(d));mock.message('222222222222222222',panelOptions(d));
  await assert.rejects(new DiscordConfigEffects(mock.client,guild,app,state()).execute(d,async()=>d),e=>e instanceof ConfigFailure&&e.code==='duplicate_marker');assert.equal(mock.sends(),0);

@@ -4,6 +4,7 @@ import type { V2Api, IntentSource } from "./ticket-v2-api.ts";
 import { uuid } from "./ticket-api.ts";
 import { features, answersFor, type TypeRevision, type TicketConfig } from "./ticket-v2-schema.ts";
 import { discordEmbed, panelCustomId } from "./ticket-v2-discord.ts";
+import { renewTicketMenu, ticketMenuBaseId } from "./ticket-menu.ts";
 export type V2Interaction = ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction | ModalSubmitInteraction;
 type CachedForm = { actor: string; revision: TypeRevision; expires: number };
 // Never log Discord exceptions: their URL and request body contain interaction tokens and answers.
@@ -118,20 +119,19 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
         // A deferred private reply alone leaves Discord's selected option checked.
         await i.deferUpdate();
         selectionReply = true;
-        const panelIds = i.customId.slice("besc:v2:p:".length).split(":");
-        const privateList = i.customId === "besc:v2:choose" && Boolean(i.message.flags.bitfield & MessageFlags.Ephemeral);
-        if (!privateList && !(i.customId.startsWith("besc:v2:p:") && panelIds.length === 2 && panelIds.every(id => uuid.test(id)))) throw new ApiError("source_not_allowed", 403);
+        const baseId = ticketMenuBaseId(i.customId);
+        const privateList = baseId === "besc:v2:choose" && Boolean(i.message.flags.bitfield & MessageFlags.Ephemeral);
+        if (!baseId || !privateList && baseId === "besc:v2:choose") throw new ApiError("source_not_allowed", 403);
         // Fetch shared panels afresh: never restore a superseded or disabled menu
         // from the interaction's older message snapshot.
         const message = privateList ? i.message : await i.message.fetch(true);
         if (message.id !== i.message.id || message.author.id !== app || message.channelId !== i.channelId || message.guildId !== guild) throw new ApiError("source_not_allowed", 403);
         const rows = message.components.map(row => row.toJSON());
         const menu = rows.flatMap(row => row.type === ComponentType.ActionRow ? row.components : [])
-          .find(c => c.type === ComponentType.StringSelect && c.custom_id === i.customId);
+          .find(c => c.type === ComponentType.StringSelect && ticketMenuBaseId(c.custom_id) === baseId);
         if (!menu || menu.type !== ComponentType.StringSelect) throw new ApiError("source_not_allowed", 403);
         if (menu.disabled) throw new ApiError("intake_unavailable", 409);
-        await i.editReply({ components: rows.map(row => row.type === ComponentType.ActionRow ? { ...row, components: row.components.map(c =>
-          c.type === ComponentType.StringSelect && c.custom_id === i.customId ? { ...c, options: c.options.map(option => ({ ...option, default: false })) } : c) } : row), allowedMentions: { parse: [] } });
+        await i.editReply({ components: renewTicketMenu(rows, baseId), allowedMentions: { parse: [] } });
       } else await i.deferReply({ flags: MessageFlags.Ephemeral });
       const config = await api.config();
       if (slash || i.isButton() && /^besc:v2:list:-?\d{1,4}$/.test(i.customId)) {
@@ -142,8 +142,8 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
       const t = config.typeRevisions.find(t => t.revisionId === i.values[0]);
       if (!t || !features.every(f => config.features.includes(f))) throw new ApiError("revision_unavailable", 410);
       let source: IntentSource = { source: "slash" };
-      if (i.customId !== "besc:v2:choose") {
-        const panel = config.panels.find(p => panelCustomId(p.panelId, p.revisionId) === i.customId && p.channelId === i.channelId && p.messageId === i.message.id && p.typeRevisionIds.includes(t.revisionId));
+      if (ticketMenuBaseId(i.customId) !== "besc:v2:choose") {
+        const panel = config.panels.find(p => panelCustomId(p.panelId, p.revisionId) === ticketMenuBaseId(i.customId) && p.channelId === i.channelId && p.messageId === i.message.id && p.typeRevisionIds.includes(t.revisionId));
         if (!panel) throw new ApiError("source_not_allowed", 403);
         source = { source: "panel", panel_id: panel.panelId, panel_revision_id: panel.revisionId, channel_id: panel.channelId, message_id: panel.messageId };
       } else if (!(i.message.flags.bitfield & MessageFlags.Ephemeral)) throw new ApiError("source_not_allowed", 403);
