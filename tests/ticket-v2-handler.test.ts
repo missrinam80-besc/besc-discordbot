@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { MessageFlags } from "discord.js";
+import { DiscordAPIError, MessageFlags } from "discord.js";
 import { ApiError } from "../src/api.ts";
 import { createV2Handler, type V2Interaction } from "../src/ticket-v2-handler.ts";
 import { panelCustomId } from "../src/ticket-v2-discord.ts";
@@ -47,6 +47,19 @@ test('Modal opent zonder defer/netwerk op dezelfde interaction na gecachete inte
  let calls=0;const handler=createV2Handler(api({revision:async()=>{calls++;return f.typeRevisionResponse.typeRevision;}}),guild,app,async()=>{},()=>{});
  await handler(interaction('select').i);const button=interaction('button',{customId:`besc:v2:f:${intent}:${revision}`});const before=calls;
  await handler(button.i);assert.deepEqual(button.events,['modal']);assert.equal(calls,before);assert.equal(button.modals[0].custom_id,`besc:v2:m:${intent}:${revision}`);
+});
+
+test('Discord weigert modal: veilige diagnostiek, privéfout en geen lege ticketintake of retry',async()=>{
+ const logs:string[]=[];let submits=0,shows=0;
+ const handler=createV2Handler(api({intake:async()=>{submits++;return f.intakeResponse;}}),guild,app,async()=>{},code=>logs.push(code));
+ await handler(interaction('select').i);
+ const error=new DiscordAPIError({message:'PRIVATE_ANSWER',code:50035,errors:{components:{'0':{component:{label:{_errors:[{code:'BASE_TYPE_REQUIRED',message:'PRIVATE_ANSWER'}]}}}}}},50035,400,'POST','https://discord.com/api/v10/interactions/123/SECRET_TOKEN/callback',{body:{answer:'PRIVATE_ANSWER'}});
+ const x=interaction('button',{customId:`besc:v2:f:${intent}:${revision}`,showModal:async()=>{shows++;throw error;}});
+ await handler(x.i);
+ assert.equal(shows,1);assert.equal(submits,0);assert.deepEqual(x.events,['reply']);
+ assert.equal(x.replies[0].flags,MessageFlags.Ephemeral);assert.match(x.replies[0].content,/tijdelijk niet beschikbaar/);
+ assert.deepEqual(logs,['typed_show_modal_discord_50035','typed_show_modal_field_components.0.component.label']);
+ assert.ok(!JSON.stringify(logs).includes('SECRET_TOKEN'));assert.ok(!JSON.stringify(logs).includes('PRIVATE_ANSWER'));
 });
 test('Cacheverlies na restart laadt de oude editie en vraagt een nieuwe knopinteraction vóór modal',async()=>{
  const handler=createV2Handler(api(),guild,app,async()=>{},()=>{});const first=interaction('button',{customId:`besc:v2:f:${intent}:${revision}`});
