@@ -12,13 +12,18 @@ function api(extra:Partial<V2Api>={}):V2Api{return{config:async()=>structuredClo
 function interaction(kind:'slash'|'select'|'button'|'modal',extra:Record<string,unknown>={}){
  const events:string[]=[],replies:any[]=[],modals:any[]=[];
  const i:any={id:user,guildId:guild,channelId:f.panelDraft.channelId,user:{id:user},commandName:'besc',customId:'besc:v2:choose',values:[revision],deferred:false,replied:false,
-  message:{id:f.configResponse.panels[0].messageId,author:{id:app},flags:{bitfield:MessageFlags.Ephemeral}},
+  message:{id:f.configResponse.panels[0].messageId,channelId:f.panelDraft.channelId,guildId:guild,author:{id:app},flags:{bitfield:MessageFlags.Ephemeral}},
   options:{getSubcommandGroup:()=> 'ticket',getSubcommand:()=> 'openen'},
   isChatInputCommand:()=>kind==='slash',isStringSelectMenu:()=>kind==='select',isButton:()=>kind==='button',isModalSubmit:()=>kind==='modal',
   fields:{fields:new Map(['onderwerp','omschrijving','omgeving'].map(id=>[id,{}])),getTextInputValue:(id:string)=>id==='onderwerp'?'TESTFIXTURE':'Private vraag',getStringSelectValues:()=>['discord']},
   reply:async(data:any)=>{events.push('reply');i.replied=true;replies.push(data);},deferReply:async(data:any)=>{events.push('defer');i.deferred=true;replies.push(data);},
   deferUpdate:async()=>{events.push('deferUpdate');i.deferred=true;},editReply:async(data:any)=>{events.push('edit');replies.push(data);},
+  followUp:async(data:any)=>{events.push('followUp');replies.push(data);},
   showModal:async(m:any)=>{events.push('modal');modals.push(m.toJSON());},...extra};
+ if(!extra.message){
+  i.message.components=[{toJSON:()=>({type:1,components:[{type:3,custom_id:i.customId,placeholder:'Kies een tickettype',options:[{label:'TESTFIXTURE',value:revision,default:true}]}]})}];
+  i.message.fetch=async()=>{events.push('fetch');return i.message;};
+ }
  return{i:i as V2Interaction,raw:i,events,replies,modals};
 }
 test('Slashintake acknowledge gebeurt vóór configuratieverkeer en toont gepubliceerde types privé',async()=>{
@@ -35,6 +40,49 @@ test('Panelinteraction draagt de echte actor en exacte bronbinding; uitleg bevat
  await createV2Handler(client,guild,app,async(a,parent)=>{assert.equal(a,user);assert.equal(parent,p.channelId);},()=>{})(x.i);
  assert.equal(body.actor,user);assert.equal(body.key,x.raw.id);assert.deepEqual(body.source,{source:'panel',panel_id:p.panelId,panel_revision_id:p.revisionId,channel_id:p.channelId,message_id:p.messageId});
  assert.equal(x.replies.at(-1).embeds[0].title,f.typeDraft.embed.title);assert.ok(x.replies.at(-1).components[0].components[0].custom_id.length<=100);
+});
+
+test('Gedeeld paneel reset de dropdown vóór API-verkeer en houdt uitleg en fouten privé',async()=>{
+ const p=f.configResponse.panels[0],x=interaction('select',{customId:panelCustomId(p.panelId,p.revisionId)});x.raw.message.flags.bitfield=0;
+ const original=x.raw.message.components[0].toJSON();let writes=0;
+ await createV2Handler(api({config:async()=>{x.events.push('api');return f.configResponse;},intent:async()=>{writes++;return f.intentResponse;}}),guild,app,async()=>{},()=>{})(x.i);
+ assert.deepEqual(x.events,['deferUpdate','fetch','edit','api','followUp']);assert.equal(writes,1);
+ const reset=x.replies[0];assert.deepEqual(Object.keys(reset).sort(),['allowedMentions','components']);
+ assert.equal(reset.components[0].components[0].custom_id,x.raw.customId);assert.equal(reset.components[0].components[0].options[0].default,false);
+ assert.equal(reset.components[0].components[0].placeholder,'Kies een tickettype');assert.equal(original.components[0].options[0].default,true);
+ assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);assert.match(x.replies.at(-1).content,/Lees de uitleg/);
+});
+
+test('Dezelfde ticketkeuze kan opnieuw worden gemaakt; elke selectie houdt haar eigen intentkey',async()=>{
+ const p=f.configResponse.panels[0],keys:string[]=[];
+ const handler=createV2Handler(api({intent:async(_a,_r,_s,key)=>{keys.push(key);return f.intentResponse;}}),guild,app,async()=>{},()=>{});
+ for(const id of ['111111111111111112','111111111111111113']){
+  const x=interaction('select',{id,customId:panelCustomId(p.panelId,p.revisionId)});x.raw.message.flags.bitfield=0;
+  await handler(x.i);assert.equal(x.replies[0].components[0].components[0].options[0].default,false);assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
+ }
+ assert.deepEqual(keys,['111111111111111112','111111111111111113']);
+});
+
+for(const failure of ['api_unavailable','linked_account_required'] as const)test(`Dropdown blijft gereset bij ${failure}; privéfout overschrijft het paneel niet`,async()=>{
+ const p=f.configResponse.panels[0],x=interaction('select',{customId:panelCustomId(p.panelId,p.revisionId)});x.raw.message.flags.bitfield=0;
+ await createV2Handler(api({config:async()=>{if(failure==='api_unavailable')throw new ApiError(failure,503);return f.configResponse;},intent:async()=>{throw new ApiError(failure,403);}}),guild,app,async()=>{},()=>{})(x.i);
+ assert.equal(x.events.filter(e=>e==='edit').length,1);assert.equal(x.replies[0].content,undefined);
+ assert.equal(x.events.at(-1),'followUp');assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);assert.deepEqual(x.replies.at(-1).components,[]);
+});
+
+for(const change of ['disabled','new_revision','other_author'] as const)test(`Vernieuwd paneel met ${change} wordt niet uit de oude snapshot hersteld`,async()=>{
+ const p=f.configResponse.panels[0],x=interaction('select',{customId:panelCustomId(p.panelId,p.revisionId)});x.raw.message.flags.bitfield=0;let writes=0;
+ const current=x.raw.message.components[0].toJSON();
+ if(change==='disabled')current.components[0].disabled=true;
+ if(change==='new_revision')current.components[0].custom_id=panelCustomId(p.panelId,'20000000-0000-4000-8000-000000000099');
+ x.raw.message.fetch=async()=>({...x.raw.message,author:{id:change==='other_author'?'222222222222222222':app},components:[{toJSON:()=>current}]});
+ await createV2Handler(api({intent:async()=>{writes++;return f.intentResponse;}}),guild,app,async()=>{},()=>{})(x.i);
+ assert.equal(writes,0);assert.ok(!x.events.includes('edit'));assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
+});
+
+test('Privékeuzelijst uit slashcommando reset zonder kanaalfetch',async()=>{
+ const x=interaction('select');await createV2Handler(api(),guild,app,async()=>{},()=>{})(x.i);
+ assert.deepEqual(x.events,['deferUpdate','edit','followUp']);assert.equal(x.replies[0].components[0].components[0].options[0].default,false);assert.equal(x.replies.at(-1).flags,MessageFlags.Ephemeral);
 });
 for(const [name,change]of [
  ['verkeerde guild',{guildId:'222222222222222222'}],['niet-eigen paneel',{message:{id:f.configResponse.panels[0].messageId,author:{id:'222222222222222222'},flags:{bitfield:0}}}],
