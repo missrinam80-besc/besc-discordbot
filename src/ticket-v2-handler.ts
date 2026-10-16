@@ -1,4 +1,4 @@
-import { DiscordAPIError, MessageFlags, ModalBuilder, type ChatInputCommandInteraction, type ButtonInteraction, type StringSelectMenuInteraction, type ModalSubmitInteraction } from "discord.js";
+import { ComponentType, DiscordAPIError, MessageFlags, ModalBuilder, type InteractionReplyOptions, type ChatInputCommandInteraction, type ButtonInteraction, type StringSelectMenuInteraction, type ModalSubmitInteraction } from "discord.js";
 import { ApiError } from "./api.ts";
 import type { V2Api, IntentSource } from "./ticket-v2-api.ts";
 import { uuid } from "./ticket-api.ts";
@@ -68,6 +68,9 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
     const slash = i.isChatInputCommand() && i.commandName === "besc" && i.options.getSubcommandGroup(false) === "ticket" && i.options.getSubcommand() === "openen";
     if (!slash && (i.isChatInputCommand() || !i.customId.startsWith("besc:v2:"))) return false;
     let openingModal = false;
+    let selectionReply = false;
+    const respond = (data: Pick<InteractionReplyOptions, "content" | "embeds" | "components" | "allowedMentions">) => selectionReply
+      ? i.followUp({ ...data, flags: MessageFlags.Ephemeral }) : i.editReply(data);
     try {
       if (i.guildId !== guild) { await i.reply({ content: "Dit ticket werkt alleen op de ingestelde server.", flags: MessageFlags.Ephemeral }); return true; }
       if (!i.isChatInputCommand() && !i.isModalSubmit() && i.message.author.id !== app) {
@@ -110,7 +113,26 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
         await i.editReply({ content: `Ticket geregistreerd: \`${ticket.ticketId}\`. De privéthread wordt aangemaakt.\nGebruik \`/besc ticket bekijken nummer:${ticket.ticketId}\` voor de threadlink.\nBijlagen en latere berichtwijzigingen worden niet overgenomen.`, components: [], embeds: [], allowedMentions: { parse: [] } });
         return true;
       }
-      await i.deferReply({ flags: MessageFlags.Ephemeral });
+      if (i.isStringSelectMenu()) {
+        // Acknowledge the source menu, then send all explanations/errors privately.
+        // A deferred private reply alone leaves Discord's selected option checked.
+        await i.deferUpdate();
+        selectionReply = true;
+        const panelIds = i.customId.slice("besc:v2:p:".length).split(":");
+        const privateList = i.customId === "besc:v2:choose" && Boolean(i.message.flags.bitfield & MessageFlags.Ephemeral);
+        if (!privateList && !(i.customId.startsWith("besc:v2:p:") && panelIds.length === 2 && panelIds.every(id => uuid.test(id)))) throw new ApiError("source_not_allowed", 403);
+        // Fetch shared panels afresh: never restore a superseded or disabled menu
+        // from the interaction's older message snapshot.
+        const message = privateList ? i.message : await i.message.fetch(true);
+        if (message.id !== i.message.id || message.author.id !== app || message.channelId !== i.channelId || message.guildId !== guild) throw new ApiError("source_not_allowed", 403);
+        const rows = message.components.map(row => row.toJSON());
+        const menu = rows.flatMap(row => row.type === ComponentType.ActionRow ? row.components : [])
+          .find(c => c.type === ComponentType.StringSelect && c.custom_id === i.customId);
+        if (!menu || menu.type !== ComponentType.StringSelect) throw new ApiError("source_not_allowed", 403);
+        if (menu.disabled) throw new ApiError("intake_unavailable", 409);
+        await i.editReply({ components: rows.map(row => row.type === ComponentType.ActionRow ? { ...row, components: row.components.map(c =>
+          c.type === ComponentType.StringSelect && c.custom_id === i.customId ? { ...c, options: c.options.map(option => ({ ...option, default: false })) } : c) } : row), allowedMentions: { parse: [] } });
+      } else await i.deferReply({ flags: MessageFlags.Ephemeral });
       const config = await api.config();
       if (slash || i.isButton() && /^besc:v2:list:-?\d{1,4}$/.test(i.customId)) {
         const page = i.isButton() ? Number(i.customId.split(":").at(-1)) : 0;
@@ -129,12 +151,12 @@ export function createV2Handler(api: V2Api, guild: string, app: string, validate
       const intent = await api.intent(i.user.id, t.revisionId, source, i.id);
       const immutable = await api.revision(intent.typeRevisionId);
       cache(intent.intentId, { actor: i.user.id, revision: immutable, expires: Date.parse(intent.expiresAt) });
-      await i.editReply({ content: "Lees de uitleg en vul daarna het formulier in.", embeds: [discordEmbed(immutable.embed)], components: button(intent.intentId, immutable.revisionId), allowedMentions: { parse: [] } });
+      await respond({ content: "Lees de uitleg en vul daarna het formulier in.", embeds: [discordEmbed(immutable.embed)], components: button(intent.intentId, immutable.revisionId), allowedMentions: { parse: [] } });
     } catch (e) {
       for (const code of safeV2Diagnostic(e, openingModal)) log(code);
       try {
         const content = v2Error(e);
-        if (i.deferred || i.replied) await i.editReply({ content, embeds: [], components: [], allowedMentions: { parse: [] } });
+        if (i.deferred || i.replied) await respond({ content, embeds: [], components: [], allowedMentions: { parse: [] } });
         else await i.reply({ content, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
       } catch { log("typed_interaction_unavailable"); }
     }
