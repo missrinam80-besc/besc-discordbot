@@ -2,7 +2,7 @@
 
 Bot met `/besc status`, `/besc account`, `/besc events` en optionele privéticketing. Ticketing V2 ondersteunt CC-tickettypes, vragenformulieren en gecontroleerde paneelpublicaties. Antwoorden zijn privé voor de aanvrager. De bot draait op een **aparte bot-DEV-server**, met HTTPS-verzoeken naar `https://cc-dev.belgianstreamerscommunity.be/api/v1/bot/`. Geen directe databaseverbinding, publieke poort, moderatie, rollenbeheer, XP of Bucks. MEE6 blijft behouden.
 
-Zie [Ticketing V2](docs/TICKETING-V2.md) voor het definitieve contract, de expliciete opt-in, duurzame state-volume, scope-overdracht en DEV-acceptatie. De V2-functies worden niet bij containerstart gepubliceerd of geactiveerd; CC-concepten blijven zonder Discordeffect.
+Begin bij de [documentatiewiki](docs/README.md) en [huidige DEV-status](docs/HUIDIGE-DEV-STATUS.md). Zie [Ticketing V2](docs/TICKETING-V2.md) voor het definitieve contract, de expliciete opt-in, duurzame state-volume, scope-overdracht en DEV-acceptatie. De V2-functies worden niet bij containerstart gepubliceerd of geactiveerd; CC-concepten blijven zonder Discordeffect.
 
 ## Bouwen en controleren
 
@@ -36,6 +36,6 @@ CI controleert TypeScript, tests, build, Docker-image en Compose. De handmatige 
 
 ## Acceptatie
 
-De gebruiker heeft de bestaande DEV-container, leescommando’s, volledige V1-ticketflow en verwijderketen na 180 dagen geaccepteerd. V2 is een afzonderlijke uitbreiding; de lokale V2-tests en deze branch bewijzen nog geen live V2-werking.
+De normale V1/V2-ticketflow, leescommando’s en de slot-DM-/gesloten-DM-terugval voor aanvraag, goedkeuring en annulering zijn op DEV door de gebruiker bevestigd. De slotopties zijn na de proef weer uit; Ticketing V2 blijft aan. De bewaartaak is eerder als actief en geslaagd bevestigd, maar een daadwerkelijke V2-purge is niet apart live bewezen. Zie [resultaten en open grenzen](docs/HUIDIGE-DEV-STATUS.md).
 
 De oorspronkelijke leessleutel is intussen vervangen en ingetrokken. De actieve ticketclient is `besc-discord-tickets-dev`; gebruik de actuele CC-configuratie als bron voor geldigheid en scopes. Geen sleutel wordt automatisch verlengd.

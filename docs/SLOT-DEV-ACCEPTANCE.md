@@ -1,5 +1,7 @@
 # DEV-acceptatieplan — slotberichten
 
+> Plan voor volledige acceptatie. De normale DM-flow en gesloten-DM-terugval zijn op 16–17 oktober beperkt live bevestigd, het testvenster is afgesloten en beide slotopties staan uit. Zie [bewijs en grenzen](HUIDIGE-DEV-STATUS.md). De overige proeven blijven apart open.
+
 Dit is een uitvoerbaar plan voor **na afzonderlijke toestemming**; geen van onderstaande live handelingen is met deze PR uitgevoerd. E-mail blijft standaard en beide opt-ins blijven uit. Gebruik uitsluitend herkenbare `TESTFIXTURE — NIET PUBLICEREN`-boekingen en vooraf aangewezen testaccounts.
 
 ## Bevestigde uitgangssituatie en resterende voorbereiding

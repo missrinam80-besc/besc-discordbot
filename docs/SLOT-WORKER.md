@@ -1,5 +1,7 @@
 # Discordworker voor eventtijdslots en boekingen
 
+> De worker is inmiddels gedeployd en beperkt live getest. Na de proef staat hij uit; Ticketing V2 blijft aan. Zie [huidige DEV-status](HUIDIGE-DEV-STATUS.md). Commit-/reviewverwijzingen hieronder beschrijven de herkomst.
+
 ## Bron en grens
 
 Gebouwd vanaf bot-main `14b8e0890ef8e606fd2af77c4d76c70330308214`, tegen CC-main `d7022f659dac52dce7743e4887265c24a9c80de2` (PR #99). Definitieve bron: de aangeleverde release-99 `API-CONTRACT.md` / `API-FIXTURES.json`, gecontroleerd tegen `src/lib/event-slot-bot-api.ts` en migratie `20261014213254_event_slot_bookings.sql` op die CC-commit. De gedeelde fixture staat ongewijzigd in `tests/fixtures/event-slot-bookings.json` en is uitsluitend synthetisch. Deze Ticketing V2-reviewbranch (PR #3) bevat inmiddels ook main met de slotworker uit PR #4. Beide functies houden hun eigen opt-in, scopecontrole en journalbestanden.

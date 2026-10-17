@@ -1,12 +1,14 @@
 # BESC ticketing op DEV
 
+> Dit beschrijft de V1-transportbasis. V2 is inmiddels actief op DEV; gebruik [V2](TICKETING-V2.md) en de [actuele status](HUIDIGE-DEV-STATUS.md) voor inrichting en bewijs. Oude eerste-uitrolstappen hieronder niet blind herhalen.
+
 Deze botuitbreiding gebruikt het definitieve CC-contract `besc-ticketing-v1` uit PR #88. Zonder `DISCORD_TICKET_PARENT_CHANNEL_ID` blijven uitsluitend de bestaande leescommando's actief. Met deze instelling moeten alle vier ticket-scopes aanwezig zijn en moet de clientidentiteit `readOnly: false` zijn.
 
 ## Bevestigde inrichting
 
 - Organisatie `999b6af9-479c-4082-b9d8-fa0a78aefac5`.
 - Testserver `1067893182387474432` en botapplicatie `1558542661265129474`.
-- Intakekanaal `#maak-een-ticket`, ID `1558853872766689382`, gekozen door de gebruiker. Kanaaltype en daadwerkelijke rechten moeten nog live worden gecontroleerd.
+- Intakekanaal `#maak-een-ticket`, ID `1558853872766689382`, gekozen door de gebruiker. De normale privéthreadflow is door de gebruiker live bevestigd; dit is geen automatische actuele rechtencontrole.
 - Bot blijft op aparte server `104.248.194.147`.
 - Iedereen op de testserver mag intake doen. Staff behandelt in Command Center; ongekoppelde aanvragers krijgen geen CC-membership of eventrechten.
 

@@ -1,5 +1,7 @@
 # DEV acceptatieplan voor ticketing V2
 
+> Acceptatieplan en historische voorbereidingscontext. De normale flow is daarna live uitgevoerd; zie [resultaten, overgeslagen en open proeven](HUIDIGE-DEV-STATUS.md). Niet alle stappen hieronder zijn geslaagd of uitgevoerd.
+
 De reviewbranch is op 15 oktober bijgewerkt tegen bot-main `26b7762` met de slotworker. `BESC_TICKETING_V2` en `BESC_SLOT_WORKER_ENABLED` blijven onafhankelijke schakelaars, standaard uit. Beide gebruiken `BESC_BOT_STATE_DIR=/app/state` met gescheiden journalbestanden. Behoud de volume bij updates. V2 heeft de drie configuratiescopes nodig; de slotworker heeft afzonderlijk `slots:deliver` nodig. Geen van deze scopes wordt door deze branchupdate verleend.
 
 Voer bij een latere gezamenlijke acceptatie ook het [slotacceptatieplan](SLOT-DEV-ACCEPTANCE.md) uit. Eerst met beide nieuwe functies uit de bestaande commands/tickets bewijzen; vervolgens iedere uitbreiding afzonderlijk activeren en pas daarna samen. Controleer dat panelherstel en slot-sent-herstel elkaar niet beïnvloeden. Scopeactivering, publicatie en echte DM's vereisen nog steeds afzonderlijke toestemming.

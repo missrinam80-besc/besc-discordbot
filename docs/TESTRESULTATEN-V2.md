@@ -1,5 +1,7 @@
 # Lokale validatie ticketing V2
 
+> Historisch lokaal testverslag van de reviewbranch, geen actuele deploymentstatus. De PR is inmiddels gemerged en de normale V2-flow beperkt live bevestigd; zie [huidige status](HUIDIGE-DEV-STATUS.md). Testaantallen horen bij de genoemde commits.
+
 ## Bijgewerkt tegen main op 15 oktober 2026
 
 PR #3 is samengevoegd met bot-main `26b7762f9a005ba87e4a0a419aad95eebdbbf537` (slotworker PR #4). Dit is een update van de bestaande reviewbranch, geen merge van PR #3 naar main. Conflicten in runtime, configuratie, foutcodes en documentatie zijn gecombineerd met behoud van beide functies. Dubbele volume- en mapaanmaakregels zijn verwijderd. Eén duurzame volume bevat afzonderlijke journals; beide opt-ins blijven standaard uit.
