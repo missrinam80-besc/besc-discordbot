@@ -89,8 +89,11 @@ test("Real HTTP request and stalled CC response body are cancelled", async () =>
   server.listen(0, "127.0.0.1"); await once(server, "listening");
   try {
     const address = server.address(); assert.ok(address && typeof address !== "string");
-    const api = createSlotApi({ ...config, apiUrl: `http://127.0.0.1:${address.port}/api/v1/bot/` }, fetch, 100);
-    assert.deepEqual(await api.claim(fixture.worker_id), delivery()); stalled = true;
+    const localConfig = { ...config, apiUrl: `http://127.0.0.1:${address.port}/api/v1/bot/` };
+    // Allow cold local HTTP startup under parallel test load, then exercise the
+    // short body deadline on the already-established connection.
+    assert.deepEqual(await createSlotApi(localConfig, fetch, 2000).claim(fixture.worker_id), delivery()); stalled = true;
+    const api = createSlotApi(localConfig, fetch, 500);
     await assert.rejects(api.claim(fixture.worker_id), (e: unknown) => e instanceof ApiError && e.code === "api_timeout");
   } finally { server.close(); server.closeAllConnections(); }
 });

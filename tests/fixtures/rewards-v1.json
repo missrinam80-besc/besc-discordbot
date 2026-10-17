@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "fixtureLabel": "TESTFIXTURE — NIET PUBLICEREN",
+  "guildId": "1067893182387474432",
+  "discordUserId": "111111111111111111",
+  "account": {
+    "schemaVersion": 1,
+    "xp": 150,
+    "level": 2,
+    "bucks": 100,
+    "reserved": 60,
+    "available": 40,
+    "ledger": [],
+    "nextOffset": null
+  },
+  "catalog": {
+    "schemaVersion": 1,
+    "items": [{
+      "id": "30000000-0000-4000-8000-000000000001",
+      "title": "TESTFIXTURE — NIET PUBLICEREN",
+      "description": "Fictieve beloning voor lokale tests.",
+      "price": 60,
+      "version": 1,
+      "available_stock": 1
+    }],
+    "nextOffset": null
+  },
+  "requestEnvelope": {
+    "guild_id": "1067893182387474432",
+    "discord_user_id": "111111111111111111",
+    "idempotency_key": "1558853872766689382",
+    "data": {"reward_id": "30000000-0000-4000-8000-000000000001", "version": 1}
+  },
+  "requestAccepted": {
+    "schemaVersion": 1,
+    "ok": true,
+    "requestId": "40000000-0000-4000-8000-000000000001",
+    "xpDelta": 0,
+    "bucksDelta": 0,
+    "reservedDelta": 60
+  },
+  "requests": {
+    "schemaVersion": 1,
+    "requests": [{
+      "id": "40000000-0000-4000-8000-000000000001",
+      "title": "TESTFIXTURE — NIET PUBLICEREN",
+      "price": 60,
+      "status": "pending",
+      "reason": "",
+      "version": 1,
+      "created_at": "2026-10-17T12:00:00+00:00",
+      "decided_at": null
+    }],
+    "nextOffset": null
+  },
+  "configDisabled": {"schemaVersion": 1, "enabled": false, "rules": []},
+  "configEnabled": {
+    "schemaVersion": 1,
+    "enabled": true,
+    "rules": [{
+      "organization_id": "10000000-0000-4000-8000-000000000001",
+      "guild_id": "1067893182387474432",
+      "kind": "voice",
+      "channel_ids": ["1558853872766689382"],
+      "xp": 10,
+      "bucks": 5,
+      "cooldown_seconds": 60,
+      "daily_xp": 100,
+      "daily_bucks": 50,
+      "enabled": true,
+      "version": 1,
+      "voice_min_participants": 2,
+      "exclude_muted": true,
+      "exclude_deafened": true,
+      "exclude_afk": true
+    }]
+  },
+  "voiceEnvelope": {
+    "guild_id": "1067893182387474432",
+    "discord_user_id": "111111111111111111",
+    "idempotency_key": "fixture-voice-minute-001",
+    "data": {
+      "kind": "voice",
+      "channel_id": "1558853872766689382",
+      "started_at": "2026-10-17T12:00:00Z",
+      "occurred_at": "2026-10-17T12:01:00Z",
+      "eligible_participants": 2,
+      "muted": false,
+      "deafened": false,
+      "afk": false
+    }
+  },
+  "error": {"error": {"code": "insufficient_bucks", "requestId": "50000000-0000-4000-8000-000000000001"}}
+}
