@@ -6,6 +6,8 @@ Gedateerde momentopname uit de gezamenlijke CC/botchat, aangeleverde servercontr
 
 ## Laatst bevestigde inrichting
 
+BESC Bucks en XP wordt afzonderlijk voorbereid in `codex/bucks-xp-v1`, tegen [CC-PR #107](https://github.com/missrinam80-besc/besc-commandcenter/pull/107). Dit is lokale ontwikkeling en review, geen nieuwe DEV-uitrol. De twee botvlaggen en de CC-verdienregels staan standaard uit. Zie [werking en grenzen](BUCKS-XP.md) en [tests](BUCKS-XP-TESTRESULTATEN.md).
+
 | Onderdeel | Stand |
 | --- | --- |
 | Botserver | BESCSRVDEV-02 / `104.248.194.147`; werkmap `/opt/besc-discordbot`; aparte CC-server BESCSRVDEV. |

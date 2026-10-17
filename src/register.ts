@@ -1,7 +1,7 @@
 import { REST, Routes } from "discord.js";
 import { createBescCommand } from "./commands.ts";
 import { loadConfig } from "./config.ts";
-const definition = createBescCommand(Boolean(process.env.DISCORD_TICKET_PARENT_CHANNEL_ID?.trim())).toJSON();
+const definition = createBescCommand(Boolean(process.env.DISCORD_TICKET_PARENT_CHANNEL_ID?.trim()), process.env.BESC_REWARDS_ENABLED?.trim() === "true").toJSON();
 if (!process.argv.includes("--apply")) {
   console.info(JSON.stringify(definition, null, 2));
   console.info("Voorbeeld; niets geregistreerd. Registreren wijzigt één /besc-commando op de ingestelde server en vereist toestemming.");

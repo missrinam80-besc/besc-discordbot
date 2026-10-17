@@ -12,6 +12,7 @@ Deze documentatie staat in de botrepository; er is geen afzonderlijke GitHub-wik
 - [Slotworker en e-mailterugval](SLOT-WORKER.md)
 - [Slotconfiguratie en twee afzonderlijke schakelaars](SLOT-CONFIGURATION.md)
 - [Tickettransport en privéthreadrechten](TICKETING-DEV.md)
+- [BESC Bucks en XP, configuratie en herstel](BUCKS-XP.md)
 
 ## Contracten en tests
 
@@ -21,6 +22,7 @@ Deze documentatie staat in de botrepository; er is geen afzonderlijke GitHub-wik
 - [Lokale V2-testresultaten](TESTRESULTATEN-V2.md)
 - [Lokale slottestresultaten](SLOT-TEST-RESULTS.md)
 - [Veilige formulierdiagnostiek](MODAL-DIAGNOSTIEK.md)
+- [Bucks API-contract](contracts/bucks-xp-api-v1.md), [gedeelde fixtures](../tests/fixtures/rewards-v1.json) en [Bucks-testresultaten](BUCKS-XP-TESTRESULTATEN.md)
 - [Historische scope-overdracht](CC-CONFIGSCOPES-V2.md) en [slot-CC-overdracht](SLOT-CC-HANDOFF.md)
 
 Plannen en lokale testverslagen zijn bewijs voor hun datum/scope, geen actuele instructie om reeds uitgevoerde wijzigingen te herhalen. De statuspagina onderscheidt code, door gebruiker bevestigde DEV-uitvoering en nog niet live bewezen scenario's. Verander geen contractfixtures voor een documentatie-update.

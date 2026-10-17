@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { Client, Events, MessageFlags } from "discord.js";
 import { loadConfig } from "./config.ts";
 import { createApi } from "./api.ts";
 import { createCommandHandler } from "./handler.ts";
@@ -16,6 +16,10 @@ import { createSlotApi, slotScope } from "./slot-api.ts";
 import { createSlotDiscord } from "./slot-discord.ts";
 import { FileSlotState } from "./slot-state.ts";
 import { createSlotWorker } from "./slot-worker.ts";
+import { FileRewardState } from "./rewards-state.ts";
+import { rewardScopes, rewardActivityScope } from "./rewards-api.ts";
+import { createRewardsRuntime, gatewayIntents } from "./rewards-runtime.ts";
+import { isRewardsInteraction } from "./rewards-handler.ts";
 
 async function main() {
   const config = loadConfig();
@@ -32,8 +36,16 @@ async function main() {
     catch { v2Enabled = false; state = undefined; console.error(JSON.stringify({ type: "ticket", code: "v2_state_unavailable" })); }
   }
   if (config.slotWorkerEnabled && !identity.scopes.includes(slotScope)) throw Error("Slotworker mist slots:deliver.");
-  const client = new Client({ intents: [GatewayIntentBits.Guilds, ...(config.ticketParentChannelId
-    ? [GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] : [])],
+  const rewardsLog = (code: string) => console.error(JSON.stringify({ type: "rewards", code }));
+  let rewardJournal: FileRewardState | undefined;
+  if (config.rewardsEnabled) {
+    if (!rewardScopes.every(s => identity.scopes.includes(s))) rewardsLog("rewards_scopes_missing");
+    else try { rewardJournal = new FileRewardState(config.stateDir!, { apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }); }
+    catch { rewardsLog("rewards_state_unavailable"); }
+  }
+  const rewardActivity = Boolean(rewardJournal && config.rewardsActivityEnabled && identity.scopes.includes(rewardActivityScope));
+  if (config.rewardsActivityEnabled && !rewardActivity) rewardsLog("rewards_activity_unavailable");
+  const client = new Client({ intents: gatewayIntents(Boolean(config.ticketParentChannelId), rewardActivity),
     rest: { timeout: 8000, retries: 0, rejectOnRateLimit: () => true }, allowedMentions: { parse: [] } });
   const handler = createCommandHandler(api, config.guildId, undefined, record => console.error(JSON.stringify(record)), config.webUrl);
   const log = (code: string) => console.error(JSON.stringify({ type: "ticket", code }));
@@ -60,16 +72,20 @@ async function main() {
   const timers: ReturnType<typeof setInterval>[] = [];
   const slotLog = (code: string) => console.error(JSON.stringify({ type: "slot", code }));
   // Open the bound durable journal only when explicitly enabled. The default performs zero slot requests.
-  const slotState = config.slotWorkerEnabled ? new FileSlotState(config.stateDir!, {
-    apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }) : undefined;
+  let slotState: FileSlotState | undefined;
+  try { if (config.slotWorkerEnabled) slotState = new FileSlotState(config.stateDir!, {
+    apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }); }
+  catch (e) { rewardJournal?.close(); client.destroy(); throw e; }
   const slots = slotState ? createSlotWorker(createSlotApi(config), createSlotDiscord(config.token), slotState, slotLog) : undefined;
+  const rewards = rewardJournal ? createRewardsRuntime(client, config, rewardJournal, rewardActivity, rewardsLog) : undefined;
   let enabled = false;
   client.once(Events.ClientReady, ready => { void (async () => {
     if (ready.application.id !== config.applicationId) {
-      console.error("Bot-token hoort niet bij de ingestelde applicatie."); slotState?.close(); client.destroy(); process.exitCode = 1; return;
+      console.error("Bot-token hoort niet bij de ingestelde applicatie."); slotState?.close(); rewardJournal?.close(); client.destroy(); process.exitCode = 1; return;
     }
     if (discord) await discord.parent();
     enabled = true;
+    if (rewards) { await rewards.start(); console.info("BESC Bucks en XP ingeschakeld; automatische activiteit heeft een afzonderlijke opt-in."); }
     if (slots) { void slots.tick(); timers.push(setInterval(() => { void slots.tick(); }, 15_000)); }
     console.info("BESC-bot verbonden. Alleen /besc; geen moderatie of rolbeheer.");
     if (worker && ingest) {
@@ -82,23 +98,37 @@ async function main() {
       timers.push(setInterval(() => { void configWorker(); }, 5000), setInterval(() => { void report(); }, 60000));
       console.info("Ticketing V2 actief; configuratie en publicaties worden via Command Center gecontroleerd.");
     }
-  })().catch(() => { log("ticket_startup_configuration_unavailable"); slotState?.close(); client.destroy(); process.exitCode = 1; });
+  })().catch(async () => { log("ticket_startup_configuration_unavailable"); await rewards?.stop(); slotState?.close(); client.destroy(); process.exitCode = 1; });
   });
   client.on(Events.InteractionCreate, interaction => {
     if (!enabled || !(interaction.isChatInputCommand() || interaction.isModalSubmit() || interaction.isButton() || interaction.isStringSelectMenu())) return;
     void (async () => {
+      if ((interaction.isChatInputCommand() || interaction.isButton() || interaction.isStringSelectMenu()) && isRewardsInteraction(interaction)) {
+        if (rewards) await rewards.handler(interaction);
+        else await interaction.reply({ content: "BESC Bucks en XP is hier nog niet ingeschakeld of vereist beheercontrole.", flags: MessageFlags.Ephemeral });
+        return;
+      }
       if (v2Handler && await v2Handler(interaction)) return;
       if (ticketHandler && (interaction.isChatInputCommand() || interaction.isModalSubmit()) && await ticketHandler(interaction)) return;
       if (interaction.isChatInputCommand()) await handler(interaction);
     })().catch(() => log("ticket_interaction_unavailable"));
   });
-  client.on(Events.MessageCreate, message => { if (enabled && ingest) void ingest.message(message); });
-  client.on(Events.ShardResume, () => { if (enabled && ingest) void ingest.sync(); });
+  client.on(Events.MessageCreate, message => { if (enabled) { if (ingest) void ingest.message(message); rewards?.message(message); } });
+  client.on(Events.ShardResume, () => { if (enabled) { if (ingest) void ingest.sync(); rewards?.resumed(); } });
+  if (rewardActivity && rewards) {
+    client.on(Events.VoiceStateUpdate, (_old, next) => { if (enabled) rewards.voice(next.guild.id); });
+    client.on(Events.ShardDisconnect, () => rewards.disconnected());
+    client.on(Events.ShardReconnecting, () => rewards.disconnected());
+    client.on(Events.Invalidated, () => rewards.disconnected());
+    client.on(Events.ShardReady, () => { if (enabled) rewards.resumed(); });
+    client.on(Events.GuildUnavailable, guild => { if (guild.id === config.guildId) rewards.disconnected(); });
+    client.on(Events.GuildAvailable, guild => { if (enabled && guild.id === config.guildId) rewards.resumed(); });
+  }
   client.on(Events.Error, () => console.error("Discord-verbinding meldt een fout."));
   const stop = () => { enabled = false; for (const timer of timers) clearInterval(timer);
-    void (async () => { await slots?.stop(); slotState?.close(); client.destroy(); })().catch(() => { client.destroy(); process.exitCode = 1; }); };
+    void (async () => { await Promise.all([slots?.stop(), rewards?.stop()]); slotState?.close(); client.destroy(); })().catch(() => { client.destroy(); process.exitCode = 1; }); };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
-  try { await client.login(config.token); } catch (e) { slotState?.close(); throw e; }
+  try { await client.login(config.token); } catch (e) { await rewards?.stop(); slotState?.close(); throw e; }
 }
 main().catch(() => { console.error("Bot niet gestart. Controleer instellingen en API-bereikbaarheid; geheimen worden niet gelogd."); process.exitCode = 1; });
