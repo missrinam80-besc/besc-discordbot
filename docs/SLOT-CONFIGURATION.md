@@ -1,4 +1,6 @@
-# Exacte aanvullende configuratie — nog niet toepassen
+# Exacte aanvullende configuratie — naslag
+
+> Naslag voor een latere goedgekeurde wijziging. Scope slots:deliver is op DEV al aanwezig; de gecontroleerde proef is afgesloten met beide slotopties uit. Niet opnieuw rechten toevoegen of flags aanzetten op basis van deze pagina. Zie [status](HUIDIGE-DEV-STATUS.md).
 
 De runtime en PR staan klaar voor review. Deze pagina beschrijft alleen de later afzonderlijk goed te keuren wijziging. Geen sleutels, hashes of tokens zijn opgenomen. De huidige live clientconfiguratie is niet door deze botchat uitgelezen; vervang daarom nooit de volledige clientlijst door een voorbeeld.
 

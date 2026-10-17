@@ -1,5 +1,7 @@
 # Afzonderlijke CC-overdracht — slotworker
 
+> Historische overdracht voor de oorspronkelijke scope-/configuratiestap. Inmiddels uitgevoerd; zie [huidige DEV-status](HUIDIGE-DEV-STATUS.md). Dit document geeft geen nieuwe toestemming om scopes of flags te wijzigen.
+
 ## Context en bevestigde feiten
 
 De botworker is lokaal gebouwd tegen CC PR #99 / main `d7022f659dac52dce7743e4887265c24a9c80de2`, het definitieve release-99-contract en de gedeelde fixtures. De vier POST-routes zijn `slot-messages/claim`, `dispatch`, `sent`, `fail`. De bot vraagt uitsluitend `slots:deliver`; hij beheert geen boekerslijsten of willekeurige ontvangers. De commandactorvertrouwensgrens blijft gedocumenteerd.

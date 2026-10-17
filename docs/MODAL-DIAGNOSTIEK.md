@@ -1,5 +1,7 @@
 # DEV: formulier opent niet
 
+> Historische diagnostiek. De onderzochte fout na formulierinzending is daarna herleid tot ontbrekend service_role-USAGE op het private schema in CC en hersteld; hertest slaagde. Veilige foutcodes hieronder blijven bruikbaar. Zie [status en oplossingen](HUIDIGE-DEV-STATUS.md).
+
 Bij de eerste live acceptatie verschijnt de privé-uitleg, maar de knop Formulier invullen geeft een algemene fout. De oorzaak is nog niet vastgesteld. De opbouw van hetzelfde formulier serialiseert lokaal succesvol met discord.js 14.27.0; dit bewijst geen acceptatie door de live Discord-API.
 
 Deze wijziging verandert geen modal, intake, rechten of API-contract. Zij maakt alleen de bestaande afgevangen fout zichtbaar als veilige codes in de bestaande botlog. Er is geen automatische herhaling en er wordt geen leeg ticket aangemaakt.

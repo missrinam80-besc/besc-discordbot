@@ -1,5 +1,7 @@
 # Afzonderlijke CC-overdracht voor configuratiescopes
 
+> Historische opdracht: de drie scopes zijn op DEV inmiddels ingelezen en bevestigd. Zie [huidige DEV-status](HUIDIGE-DEV-STATUS.md). Behoud deze procedure als naslag; voer geen nieuwe credentialwijziging uit omdat het oorspronkelijke tekstblok nog in de toekomstige tijd staat.
+
 Dit is een voorbereide opdracht, geen uitgevoerde clientwijziging. De actieve client is `besc-discord-tickets-dev`. De aanwezigheid van de drie nieuwe scopes is nog niet live bevestigd. Wijzig pas na afzonderlijke toestemming voor deze concrete configuratiestap.
 
 1. Lees het actuele clientrecord op de CC-DEV-service, zonder volledige secrets/env of credentials te tonen. Neem niet een oud prototype- of exportbestand als bron.

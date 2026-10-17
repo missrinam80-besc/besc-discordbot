@@ -1,5 +1,7 @@
 # Testresultaten slotworker
 
+> Historisch lokaal testverslag. Daarna zijn de normale DM-flow en gesloten-DM-terugval live bevestigd en beide slotopties weer uitgezet. Zie [huidige status en resterende proeven](HUIDIGE-DEV-STATUS.md); lokale foutinjectie blijft onderscheiden van live bewijs.
+
 Uitgevoerd op 15 oktober 2026 met Node.js 24.14.0, vanaf bot-main `14b8e0890ef8e606fd2af77c4d76c70330308214`. Contract gecontroleerd tegen CC `d7022f659dac52dce7743e4887265c24a9c80de2`.
 
 Bij afronding is opnieuw gecontroleerd tegen CC-main `739d72a58eb1662a0e03d6fc81e1e9cc60cca831` (PR #100). De vergelijking met PR #99 bevat geen wijziging aan slotroutes, contract, fixtures of migratie. De bestaande worker blijft passend; geen tweede implementatie of runtimewijziging toegevoegd.

@@ -1,12 +1,12 @@
 # Ticketing V2 runtime
 
-Deze botuitbreiding voert het definitieve CC-contract `cc-ticketing-v2-1` uit. De canonieke contracten en fixtures zijn exact overgenomen uit Command Center-main op `fac133d0972e4085004ebdd6745108288b7c3665`. De statusregels in die CC-contractsnapshot zijn historisch; de gebruiker heeft PR 93/94, migraties en DEV-pagina’s als uitgevoerd bevestigd. Deze botbranch is nog niet live geaccepteerd.
+Deze botuitbreiding voert het definitieve CC-contract `cc-ticketing-v2-1` uit. De canonieke contracten en fixtures zijn exact overgenomen uit Command Center-main op `fac133d0972e4085004ebdd6745108288b7c3665`. De statusregels in die CC-contractsnapshot zijn historisch; de gebruiker heeft PR 93/94, migraties en DEV-pagina’s als uitgevoerd bevestigd. De normale V2-flow is inmiddels beperkt live geaccepteerd; zie [gedateerde resultaten en open proeven](HUIDIGE-DEV-STATUS.md).
 
 ## Wat verandert
 
 - `/besc ticket openen` toont bij ingeschakelde V2 gepubliceerde tickettypes in een privékeuzelijst, met pagina’s boven 25 types.
 - De panelen gebruiken klassieke embeds en een keuzelijst. Na typekeuze krijgt de aanvrager privé uitleg en de knop Formulier invullen.
-- Bij typekeuze worden de row-/component-ID en een strikt begrensde UI-nonce vernieuwd om de dropdown opnieuw op te bouwen. Deze nonce verandert geen CC-paneel- of formuliereditie. De broncontrole en publicatiereconciliatie vergelijken de oorspronkelijke paneelbinding; publicatie-inhoud en disabled-status blijven bepalend. Dit is lokaal getest; het zichtbare resetgedrag vereist na de botupdate opnieuw live Discordacceptatie.
+- Bij typekeuze worden de row-/component-ID en een strikt begrensde UI-nonce vernieuwd om de dropdown opnieuw op te bouwen. Deze nonce verandert geen CC-paneel- of formuliereditie. De broncontrole en publicatiereconciliatie vergelijken de oorspronkelijke paneelbinding; publicatie-inhoud en disabled-status blijven bepalend. De gebruiker heeft het resetgedrag en dezelfde keuze opnieuw selecteren na PR 7 live bevestigd. De bestaande Discordclientweergave moest eenmalig worden vernieuwd; PR 6 alleen was onvoldoende.
 - De modal gebruikt moderne Label-componenten voor korte/lange tekst en single/multi-keuzes. Maximaal vijf vragen; geen extra verborgen onderwerpvraag.
 - Intent en intake gebruiken de echte interaction-ID als duurzame CC-idempotencykey. Retries gebruiken exact dezelfde actor, editie en payload. CC registreert atomisch ticket, snapshot en opdrachten.
 - Oude intents houden hun eigen editie. Bij lokale cacheverliezen wordt die editie opgehaald en een nieuwe knopinteraction gevraagd; een modal wordt niet na een defer getoond.
@@ -18,9 +18,9 @@ De bestaande commanddefinitie blijft gelijk. Deze branch registreert niets autom
 
 ## Expliciete inschakeling
 
-V2 staat standaard uit (`BESC_TICKETING_V2=false`). De huidige client moet alle bestaande lees-/ticketrechten behouden en daarnaast `bot-config:read`, `bot-config:report`, `bot-config:deliver` hebben. Die drie scopes zijn niet in deze taak live geverifieerd of gewijzigd.
+V2 staat standaard uit (`BESC_TICKETING_V2=false`). De huidige client moet alle bestaande lees-/ticketrechten behouden en daarnaast `bot-config:read`, `bot-config:report`, `bot-config:deliver` hebben. Deze drie scopes zijn op DEV inmiddels veilig ingelezen en bevestigd. Dat is een gedateerde operatorcontrole; controleer voor een nieuwe wijziging opnieuw geldigheid en binding zonder secrets te tonen.
 
-Later, na review en afzonderlijke toestemming, gebruikt de serverconfiguratie:
+De bestaande DEV-configuratie gebruikt (na de reeds uitgevoerde activering):
 
 ```dotenv
 BESC_TICKETING_V2=true
