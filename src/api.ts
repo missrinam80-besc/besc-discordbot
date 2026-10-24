@@ -24,7 +24,7 @@ const codes = new Set(["invalid_client", "guild_not_allowed", "insufficient_scop
   "linked_account_required", "source_not_allowed", "invalid_delivery_result", "invalid_config", "configuration_too_large",
   "invalid_body", "invalid_fields", "body_timeout", "recipient_no_longer_linked", "slot_delivery_unavailable",
   "insufficient_bucks", "out_of_stock", "reward_unavailable", "invalid_state", "linked_membership_required", "stale_version", "cooldown", "daily_limit",
-  "activity_expired", "voice_ineligible", "activity_disabled", "invalid_discord_id", "invalid_event_id", "method_not_allowed", "not_found"]);
+  "activity_expired", "voice_ineligible", "activity_disabled", "invalid_discord_id", "invalid_event_id", "method_not_allowed", "not_found", "campaign_unavailable"]);
 function object(value: unknown): value is Record<string, unknown> { return Boolean(value && typeof value === "object" && !Array.isArray(value)); }
 export function createTransport(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch, timeoutMs = 8000, maxResponseBytes = 65_536) {
   const base = validateUrl(config.apiUrl, true);

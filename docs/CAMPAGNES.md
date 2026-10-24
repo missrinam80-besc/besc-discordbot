@@ -1,6 +1,14 @@
 # Eigen campagnes — F5.1
 
-24 oktober 2026. De bot kan optioneel `/besc campagne mijn` aanbieden. Het privéantwoord bevat maximaal vijf eigen actuele campagnes per pagina en vaste links naar Command Center. Indienen, toestemming en beoordelen blijven in CC. Geen metingen, andere deelnemers of saldi worden getoond.
+24 oktober 2026. De bot kan optioneel `/besc campagne mijn` aanbieden. Het privéantwoord bevat maximaal vijf eigen actuele campagnes per pagina en vaste links naar Command Center. Toestemming en beoordelen blijven in CC. Geen metingen, andere deelnemers of saldi worden getoond.
+
+## Afzonderlijk optionele kandidaat-invoer
+
+`BESC_CAMPAIGN_SUBMISSIONS_ENABLED=false` blijft standaard uit. Inschakelen vereist daarnaast de campagnemodule en afzonderlijke scope `campaigns:own:write`, zowel voor runtime als voor commandregistratie. `/besc campagne indienen` gebruikt de campagnelink uit CC en een Twitch-/YouTube-postlink; de bot mag geen andere gebruiker, organisatie, bedrag of goedkeuring opgeven.
+
+De echte Discord-interactie-ID blijft de idempotencysleutel. CC zoekt precies één eigen actuele geaccepteerde deelname en controleert die opnieuw onder de bestaande campagnegate. Identieke herhaling blijft dezelfde ontvangst; gewijzigde inhoud conflicteert. De bijdrage wordt kandidaat in de bestaande onafhankelijke reviewketen. Een al bestaande bijdrage wordt niet automatisch opnieuw goedgekeurd en levert geen beloning op.
+
+Bij een onzekere ontvangst verwijst de bot naar de actuele CC-gegevens voordat opnieuw wordt ingediend. Er is geen achtergrondretry met nieuwe sleutels, nieuwe worker of tweede gegevensopslag. De verdere F5-uitbreidingen staan in de aparte CC-PR #123; de bot krijgt geen directe toegang tot Twitchcredentials, Streamer.bot-bronkeys of saldosnapshots.
 
 ## Veilige standaard
 

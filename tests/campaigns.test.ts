@@ -42,3 +42,12 @@ test('Campaign commands default off and preserve existing command groups when op
  assert.equal(loadConfig(env).campaignsEnabled,undefined);assert.equal(loadConfig({...env,BESC_CAMPAIGN_COMMANDS_ENABLED:'true'}).campaignsEnabled,true);
  assert.throws(()=>loadConfig({...env,BESC_CAMPAIGN_COMMANDS_ENABLED:'yes'}));
 });
+test('Submission is separately enabled, binds campaign origin and keeps original interaction id',async()=>{
+ let writes=0,key='';const api={async own(){return page;},async submit(a:string,c:string,url:string,k:string){writes++;assert.equal(a,actor);assert.equal(c,id);assert.equal(url,'https://clips.twitch.tv/TESTFIXTURE');key=k;return{contributionId:id,status:'candidate',replay:false};}};
+ const i=input();i.id='111111111111111111';i.options.getSubcommand=()=> 'indienen';i.options.getString=name=>name==='campagne'?`https://cc.example.invalid/app/campagnes/${id}/proef`:'https://clips.twitch.tv/TESTFIXTURE';let text='';i.editReply=async r=>{text=r.content;assert.deepEqual(r.allowedMentions,{parse:[]});};
+ await createCampaignHandler(api,{guildId:guild,webUrl:'https://cc.example.invalid'})(i);assert.equal(writes,0);
+ await createCampaignHandler(api,{guildId:guild,webUrl:'https://cc.example.invalid',submissionsEnabled:true})(i);assert.equal(writes,1);assert.equal(key,i.id);assert(text.includes('geen beloning'));
+ i.options.getString=name=>name==='campagne'?`https://evil.invalid/app/campagnes/${id}/proef`:'https://clips.twitch.tv/TESTFIXTURE';
+ await createCampaignHandler(api,{guildId:guild,webUrl:'https://cc.example.invalid',submissionsEnabled:true})(i);assert.equal(writes,1);
+ const command=createBescCommand(true,true,true,true).toJSON();assert(command.options?.some(o=>o.name==='campagne'&&'options' in o&&o.options?.some(s=>s.name==='indienen')));
+});

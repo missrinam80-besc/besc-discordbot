@@ -5,12 +5,19 @@ export const campaignScope = 'campaigns:own:read';
 export type OwnCampaign = { id: string; title: string; synthetic: boolean; path: string };
 export type CampaignPage = { campaigns: OwnCampaign[]; nextOffset: number | null };
 export interface CampaignApi { own(actor: string, offset: number): Promise<CampaignPage> }
+export const campaignSubmitScope='campaigns:own:write';
+export interface CampaignSubmitApi {submit(actor:string,campaign:string,url:string,key:string):Promise<{contributionId:string;status:string;replay:boolean}>}
 const invalid = (): never => { throw new ApiError('invalid_response', 502); };
 const object = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === 'object' && !Array.isArray(v));
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
-export function createCampaignApi(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch): CampaignApi {
+export function createCampaignApi(config: { apiUrl: string; apiKey: string; guildId: string }, fetcher: typeof fetch = fetch): CampaignApi & CampaignSubmitApi {
   const get = createTransport(config, fetcher);
-  return { async own(actor, offset) {
+  return {async submit(actor,campaign,url,key){
+    if(!snowflake.test(actor)||!snowflake.test(key)||!uuid.test(campaign)||url.length>2048)invalid();
+    const r=await get('campaigns',{}, {discord_user_id:actor,idempotency_key:key,data:{campaign_id:campaign,url}});
+    if(!exact(r,['schemaVersion','contributionId','status','replay'])||r.schemaVersion!==1||typeof r.contributionId!=='string'||!uuid.test(r.contributionId)||!['candidate','verified','rejected'].includes(String(r.status))||typeof r.replay!=='boolean')invalid();
+    return {contributionId:r.contributionId as string,status:r.status as string,replay:r.replay as boolean};
+  }, async own(actor, offset) {
     if (!snowflake.test(actor) || !Number.isInteger(offset) || offset < 0 || offset > 99975) invalid();
     const data = await get('campaigns', { discord_user_id: actor, offset: String(offset) });
     if (!exact(data, ['schemaVersion', 'campaigns', 'nextOffset']) || data.schemaVersion !== 1 || !Array.isArray(data.campaigns) || data.campaigns.length > 5) invalid();
