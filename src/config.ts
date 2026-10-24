@@ -1,6 +1,6 @@
 import { isAbsolute } from "node:path";
 export type BotConfig = { token: string; applicationId: string; guildId: string; apiUrl: string; webUrl: string; apiKey: string; ticketParentChannelId?: string;
-  ticketingV2: boolean; slotWorkerEnabled?: boolean; rewardsEnabled?: boolean; rewardsActivityEnabled?: boolean; stateDir?: string };
+  ticketingV2: boolean; slotWorkerEnabled?: boolean; rewardsEnabled?: boolean; rewardsActivityEnabled?: boolean; campaignsEnabled?: boolean;campaignSubmissionsEnabled?:boolean; stateDir?: string };
 const snowflake = /^[1-9]\d{16,19}$/;
 export function validateUrl(value: string, allowLocal = false) {
   const url = new URL(value);
@@ -32,9 +32,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BotConfig {
   if (![rewardsFlag, activityFlag].every(x => ["false", "true"].includes(x))) throw Error("Bucks-instellingen moeten true of false zijn.");
   if (activityFlag === "true" && rewardsFlag !== "true") throw Error("Automatisch verdienen vereist de afzonderlijk ingeschakelde Bucks-module.");
   const stateDir = env.BESC_BOT_STATE_DIR?.trim();
+  const campaignsFlag = env.BESC_CAMPAIGN_COMMANDS_ENABLED?.trim() || 'false';
+  if (!['false', 'true'].includes(campaignsFlag)) throw Error('BESC_CAMPAIGN_COMMANDS_ENABLED moet true of false zijn.');
+  const submitFlag=env.BESC_CAMPAIGN_SUBMISSIONS_ENABLED?.trim()||'false';
+  if(!['false','true'].includes(submitFlag)||submitFlag==='true'&&campaignsFlag!=='true')throw Error('Bijdragen indienen vereist de afzonderlijk ingeschakelde campagnemodule.');
   if ((ticketingV2 || slotFlag === "true" || rewardsFlag === "true") && (!stateDir || !isAbsolute(stateDir))) throw Error("Workers vereisen een absolute, duurzame BESC_BOT_STATE_DIR.");
   if (ticketingV2 && !ticketParentChannelId) throw Error("V2 vereist het legacykanaal.");
   return { ...config, ticketingV2, ...(stateDir ? { stateDir } : {}), ...(ticketParentChannelId ? { ticketParentChannelId } : {}),
     ...(slotFlag === "true" ? { slotWorkerEnabled: true } : {}), ...(rewardsFlag === "true" ? { rewardsEnabled: true } : {}),
-    ...(activityFlag === "true" ? { rewardsActivityEnabled: true } : {}) };
+    ...(activityFlag === "true" ? { rewardsActivityEnabled: true } : {}), ...(campaignsFlag === 'true' ? { campaignsEnabled: true } : {}),...(submitFlag==='true'?{campaignSubmissionsEnabled:true}:{}) };
 }

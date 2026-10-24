@@ -20,12 +20,16 @@ import { FileRewardState } from "./rewards-state.ts";
 import { rewardScopes, rewardActivityScope } from "./rewards-api.ts";
 import { createRewardsRuntime, gatewayIntents } from "./rewards-runtime.ts";
 import { isRewardsInteraction } from "./rewards-handler.ts";
+import { campaignScope,campaignSubmitScope, createCampaignApi } from './campaign-api.ts';
+import { createCampaignHandler, isCampaignInteraction } from './campaign-handler.ts';
 
 async function main() {
   const config = loadConfig();
   const api = createApi(config);
   // Validate the restricted client identity before starting the Discord connection.
   const identity = await api.identity();
+  const campaigns = config.campaignsEnabled && identity.scopes.includes(campaignScope)
+    ? createCampaignHandler(createCampaignApi(config), {...config,submissionsEnabled:config.campaignSubmissionsEnabled&&identity.scopes.includes(campaignSubmitScope)}, undefined, code => console.error(JSON.stringify({ type: 'campaign', code }))) : undefined;
   if (!["identity:read", "account:read", "events:read"].every(s => identity.scopes.includes(s))) throw Error("API-client mist benodigde leesrechten.");
   if (config.ticketParentChannelId && (identity.readOnly || !ticketScopes.every(s => identity.scopes.includes(s)))) throw Error("Ticketclient mist benodigde ticketrechten.");
   let v2Enabled = config.ticketingV2 && configScopes.every(s => identity.scopes.includes(s));
@@ -103,6 +107,11 @@ async function main() {
   client.on(Events.InteractionCreate, interaction => {
     if (!enabled || !(interaction.isChatInputCommand() || interaction.isModalSubmit() || interaction.isButton() || interaction.isStringSelectMenu())) return;
     void (async () => {
+      if (interaction.isChatInputCommand() && isCampaignInteraction(interaction)) {
+        if (campaigns) await campaigns(interaction);
+        else await interaction.reply({ content: 'Campagnes zijn hier nog niet ingeschakeld of vereisen beheercontrole.', flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
+        return;
+      }
       if ((interaction.isChatInputCommand() || interaction.isButton() || interaction.isStringSelectMenu()) && isRewardsInteraction(interaction)) {
         if (rewards) await rewards.handler(interaction);
         else await interaction.reply({ content: "BESC Bucks en XP is hier nog niet ingeschakeld of vereist beheercontrole.", flags: MessageFlags.Ephemeral });

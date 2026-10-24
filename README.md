@@ -1,5 +1,7 @@
 # BESC Discordbot
 
+F5-bouw: [eigen campagnes en afzonderlijk optionele kandidaat-invoer](docs/CAMPAGNES.md). Standaard uit; aparte CC-routes, scopes, registratie en DEV-vrijgave nodig. Geen live activering door deze codewijziging.
+
 Bot met `/besc status`, `/besc account`, `/besc events` en optionele privéticketing. Ticketing V2 ondersteunt CC-tickettypes, vragenformulieren en gecontroleerde paneelpublicaties. Antwoorden zijn privé voor de aanvrager. De bot draait op een **aparte bot-DEV-server**, met HTTPS-verzoeken naar `https://cc-dev.belgianstreamerscommunity.be/api/v1/bot/`. Geen directe databaseverbinding, publieke poort, moderatie of rollenbeheer. MEE6 blijft behouden.
 
 Begin bij de [documentatiewiki](docs/README.md) en [huidige DEV-status](docs/HUIDIGE-DEV-STATUS.md). Zie [Ticketing V2](docs/TICKETING-V2.md) voor het definitieve contract, de expliciete opt-in, duurzame state-volume, scope-overdracht en DEV-acceptatie. De V2-functies worden niet bij containerstart gepubliceerd of geactiveerd; CC-concepten blijven zonder Discordeffect.
