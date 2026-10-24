@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, InteractionContextType } from "discord.js";
-export function createBescCommand(tickets = false, rewards = false) {
+export function createBescCommand(tickets = false, rewards = false, campaigns = false) {
 const command = new SlashCommandBuilder()
   .setName("besc").setDescription("BESC Command Center")
   .setContexts(InteractionContextType.Guild)
@@ -17,6 +17,9 @@ if (rewards) command.addSubcommandGroup(g => g.setName("bucks").setDescription("
     .addIntegerOption(o => o.setName("pagina").setDescription("Pagina van de beloningen").setMinValue(1).setMaxValue(4000)))
   .addSubcommand(c => c.setName("aanvragen").setDescription("Bekijk je aanvragen en annuleer een open aanvraag")
     .addIntegerOption(o => o.setName("pagina").setDescription("Pagina van je aanvragen").setMinValue(1).setMaxValue(4000))));
+if (campaigns) command.addSubcommandGroup(g => g.setName('campagne').setDescription('Jouw BESC-campagnes')
+  .addSubcommand(c => c.setName('mijn').setDescription('Bekijk je eigen actuele campagnes')
+    .addIntegerOption(o => o.setName('pagina').setDescription('Pagina van vijf campagnes').setMinValue(1).setMaxValue(19996))));
 return command;
 }
 export const bescCommand = createBescCommand();
