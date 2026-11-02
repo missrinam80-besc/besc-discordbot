@@ -43,3 +43,13 @@ CI controleert TypeScript, tests, build, Docker-image en Compose. De handmatige 
 De normale V1/V2-ticketflow, leescommando’s en de slot-DM-/gesloten-DM-terugval voor aanvraag, goedkeuring en annulering zijn op DEV door de gebruiker bevestigd. De slotopties zijn na de proef weer uit; Ticketing V2 blijft aan. De bewaartaak is eerder als actief en geslaagd bevestigd, maar een daadwerkelijke V2-purge is niet apart live bewezen. Zie [resultaten en open grenzen](docs/HUIDIGE-DEV-STATUS.md).
 
 De oorspronkelijke leessleutel is intussen vervangen en ingetrokken. De actieve ticketclient is `besc-discord-tickets-dev`; gebruik de actuele CC-configuratie als bron voor geldigheid en scopes. Geen sleutel wordt automatisch verlengd.
+
+## BO04: Discord Scheduled Events (voorbereid, standaard uit)
+
+`BESC_DISCORD_EVENTS_ENABLED=false` en `BESC_DISCORD_EVENT_INTEREST_ENABLED=false` zijn afzonderlijke opt-ins. De bestaande client moet eerst afzonderlijk `events:sync` en eventueel `events:interest` krijgen. Geen nieuwe commando-registratie of intents. Hetzelfde duurzame `BESC_BOT_STATE_DIR` behouden; events krijgen een apart gebonden journaal en proceslock.
+
+Alleen expliciet vrijgegeven CC-events worden verwerkt, met een BESC-aanmeldlink. Interested is uitsluitend interesse; eigen Ik kom en staff-check-in staan apart in CC. Onzekere creates worden nooit herhaald: uitsluitend één eigen event met dezelfde referentie en exact vastgelegde inhoud kan worden bevestigd. Geen/ambigue match blijft voor beheercontrole staan. Ook een ontbrekend of beëindigd event wordt niet stil vervangen.
+
+De worker respecteert rate limits zonder late wachtrij of automatische mutation-retries. Bij harde crash blijft de lock bestaan: eerst bevestigen dat de oude worker niet meer draait, journaal bewaren en beheerbeoordeling uitvoeren. Verwijder nooit het journaal om opnieuw te proberen. Een onopgeloste onzekere verwerking blokkeert deze eventworker; ticketing, slots en Bucks hebben afzonderlijke workers.
+
+Lokale implementatie is geen live acceptatie. Cloud-migratie, uitrol, scopes, activering en het maken van echte Discord-events vragen afzonderlijke vrijgave. Volledige beheer-/herstelprocedure: CC `docs/discord-events.md`.

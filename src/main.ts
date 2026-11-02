@@ -1,3 +1,8 @@
+import { createEventSyncApi } from './event-sync-api.ts';
+import { createEventSyncDiscord } from './event-sync-discord.ts';
+import { createEventSyncWorker } from './event-sync-worker.ts';
+import { createEventInterestWorker } from './event-interest-worker.ts';
+import { FileEventSyncState } from './event-sync-state.ts';
 import { Client, Events, MessageFlags } from "discord.js";
 import { loadConfig } from "./config.ts";
 import { createApi } from "./api.ts";
@@ -28,6 +33,8 @@ async function main() {
   const api = createApi(config);
   // Validate the restricted client identity before starting the Discord connection.
   const identity = await api.identity();
+  if (config.eventSyncEnabled && (identity.readOnly || !identity.scopes.includes('events:sync'))) throw Error('Eventworker mist events:sync.');
+  if (config.eventInterestEnabled && !identity.scopes.includes('events:interest')) throw Error('Interesseworker mist events:interest.');
   const campaigns = config.campaignsEnabled && identity.scopes.includes(campaignScope)
     ? createCampaignHandler(createCampaignApi(config), {...config,submissionsEnabled:config.campaignSubmissionsEnabled&&identity.scopes.includes(campaignSubmitScope)}, undefined, code => console.error(JSON.stringify({ type: 'campaign', code }))) : undefined;
   if (!["identity:read", "account:read", "events:read"].every(s => identity.scopes.includes(s))) throw Error("API-client mist benodigde leesrechten.");
@@ -81,15 +88,27 @@ async function main() {
     apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }); }
   catch (e) { rewardJournal?.close(); client.destroy(); throw e; }
   const slots = slotState ? createSlotWorker(createSlotApi(config), createSlotDiscord(config.token), slotState, slotLog) : undefined;
+  const eventLog = (code: string) => console.error(JSON.stringify({ type: 'event', code }));
+  let eventState: FileEventSyncState | undefined;
+  if (config.eventSyncEnabled) {
+    try { eventState = new FileEventSyncState(config.stateDir!, { apiUrl: config.apiUrl, guildId: config.guildId, applicationId: config.applicationId, clientId: identity.clientId }); }
+    catch (e) { slotState?.close(); rewardJournal?.close(); client.destroy(); throw e; }
+  }
+  const eventApi = eventState ? createEventSyncApi(config) : undefined;
+  const eventDiscord = eventState ? createEventSyncDiscord(config) : undefined;
+  const eventWorker = eventState && eventApi && eventDiscord ? createEventSyncWorker(eventApi, eventDiscord, eventState, eventLog) : undefined;
+  const interestWorker = config.eventInterestEnabled && eventApi && eventDiscord ? createEventInterestWorker(eventApi, eventDiscord, eventLog) : undefined;
   const rewards = rewardJournal ? createRewardsRuntime(client, config, rewardJournal, rewardActivity, rewardsLog) : undefined;
   let enabled = false;
   client.once(Events.ClientReady, ready => { void (async () => {
     if (ready.application.id !== config.applicationId) {
-      console.error("Bot-token hoort niet bij de ingestelde applicatie."); slotState?.close(); rewardJournal?.close(); client.destroy(); process.exitCode = 1; return;
+      console.error("Bot-token hoort niet bij de ingestelde applicatie."); slotState?.close(); eventState?.close(); rewardJournal?.close(); client.destroy(); process.exitCode = 1; return;
     }
     if (discord) await discord.parent();
     enabled = true;
     if (rewards) { await rewards.start(); console.info("BESC Bucks en XP ingeschakeld; automatische activiteit heeft een afzonderlijke opt-in."); }
+    if (eventWorker) { void eventWorker.tick(); timers.push(setInterval(() => { void eventWorker.tick(); }, 30_000)); }
+    if (interestWorker) { void interestWorker.tick(); timers.push(setInterval(() => { void interestWorker.tick(); }, 300_000)); }
     if (slots) { void slots.tick(); timers.push(setInterval(() => { void slots.tick(); }, 15_000)); }
     console.info("BESC-bot verbonden. Alleen /besc; geen moderatie of rolbeheer.");
     if (worker && ingest) {
@@ -102,7 +121,7 @@ async function main() {
       timers.push(setInterval(() => { void configWorker(); }, 5000), setInterval(() => { void report(); }, 60000));
       console.info("Ticketing V2 actief; configuratie en publicaties worden via Command Center gecontroleerd.");
     }
-  })().catch(async () => { log("ticket_startup_configuration_unavailable"); await rewards?.stop(); slotState?.close(); client.destroy(); process.exitCode = 1; });
+  })().catch(async () => { log("ticket_startup_configuration_unavailable"); await Promise.all([rewards?.stop(), eventWorker?.stop(), interestWorker?.stop()]); eventState?.close(); slotState?.close(); client.destroy(); process.exitCode = 1; });
   });
   client.on(Events.InteractionCreate, interaction => {
     if (!enabled || !(interaction.isChatInputCommand() || interaction.isModalSubmit() || interaction.isButton() || interaction.isStringSelectMenu())) return;
@@ -135,9 +154,9 @@ async function main() {
   }
   client.on(Events.Error, () => console.error("Discord-verbinding meldt een fout."));
   const stop = () => { enabled = false; for (const timer of timers) clearInterval(timer);
-    void (async () => { await Promise.all([slots?.stop(), rewards?.stop()]); slotState?.close(); client.destroy(); })().catch(() => { client.destroy(); process.exitCode = 1; }); };
+    void (async () => { await Promise.all([slots?.stop(), rewards?.stop(), eventWorker?.stop(), interestWorker?.stop()]); eventState?.close(); slotState?.close(); client.destroy(); })().catch(() => { client.destroy(); process.exitCode = 1; }); };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
-  try { await client.login(config.token); } catch (e) { await rewards?.stop(); slotState?.close(); throw e; }
+  try { await client.login(config.token); } catch (e) { await Promise.all([rewards?.stop(), eventWorker?.stop(), interestWorker?.stop()]); eventState?.close(); slotState?.close(); throw e; }
 }
 main().catch(() => { console.error("Bot niet gestart. Controleer instellingen en API-bereikbaarheid; geheimen worden niet gelogd."); process.exitCode = 1; });
