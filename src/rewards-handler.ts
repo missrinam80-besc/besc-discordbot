@@ -15,7 +15,7 @@ type Context = { actor: string; expires: number } & (
 );
 const clean = (v: string, n = 1600) => escapeMarkdown(v.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, n)).slice(0, n).replace(/\\$/, "");
 const format = (n: number) => n.toLocaleString("nl-BE");
-const status: Record<string, string> = { pending: "Aangevraagd", approved: "Goedgekeurd", rejected: "Afgewezen", cancelled: "Geannuleerd", fulfilled: "Afgehandeld" };
+const status: Record<string, string> = { pending: "Aangevraagd", approved: "Goedgekeurd", rejected: "Afgewezen", cancelled: "Geannuleerd", fulfilled: "Afgehandeld", refunded: "Terugbetaald" };
 const reasons: Record<string, string> = {
   insufficient_bucks: "Je hebt onvoldoende beschikbare Bucks. Een deel kan gereserveerd zijn voor andere aanvragen.",
   out_of_stock: "Deze beloning is niet meer op voorraad.", reward_unavailable: "Deze beloning is niet meer beschikbaar.",

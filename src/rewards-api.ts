@@ -6,7 +6,7 @@ export const rewardActivityScope = "rewards:activity:ingest";
 export type RewardLedger = { id: string; kind: string; xp_delta: number; bucks_delta: number; reserved_delta: number; reason: string; created_at: string };
 export type RewardAccount = { xp: number; level: number; bucks: number; reserved: number; available: number; ledger: RewardLedger[]; nextOffset: number | null };
 export type RewardItem = { id: string; title: string; description: string; price: number; version: number; available_stock: number | null };
-export type RewardRequest = { id: string; title: string; price: number; status: "pending" | "approved" | "rejected" | "cancelled" | "fulfilled"; reason: string; version: number; created_at: string; decided_at: string | null };
+export type RewardRequest = { id: string; title: string; price: number; status: "pending" | "approved" | "rejected" | "cancelled" | "fulfilled" | "refunded"; reason: string; version: number; created_at: string; decided_at: string | null };
 export type RewardRule = { organization_id: string; guild_id: string; kind: "text" | "voice"; channel_ids: string[]; xp: number; bucks: number; cooldown_seconds: number; daily_xp: number; daily_bucks: number; enabled: true; version: number; voice_min_participants: number; exclude_muted: boolean; exclude_deafened: boolean; exclude_afk: boolean };
 export type RewardConfig = { enabled: boolean; rules: RewardRule[] };
 export type RewardActivity = { kind: "text"; channel_id: string; occurred_at: string } | { kind: "voice"; channel_id: string; started_at: string; occurred_at: string; eligible_participants: number; muted: boolean; deafened: boolean; afk: boolean };
@@ -78,7 +78,7 @@ export function createRewardsApi(config: { apiUrl: string; apiKey: string; guild
       const b = await get("account", actor, offset), nextOffset = page(b, offset);
       if (![b.xp, b.bucks, b.reserved, b.available].every(x => integer(x)) || !integer(b.level, 0, 100) || Number(b.reserved) > Number(b.bucks) || b.available !== Number(b.bucks) - Number(b.reserved)) return invalid();
       const ledger = rows(b.ledger).map(e => {
-        if (typeof e.id !== "string" || !uuid.test(e.id) || !["manual", "correction", "activity", "reserve", "spend", "release", "fulfill"].includes(String(e.kind))
+        if (typeof e.id !== "string" || !uuid.test(e.id) || !["manual", "correction", "activity", "reserve", "spend", "release", "fulfill", "refund"].includes(String(e.kind))
           || ![e.xp_delta, e.bucks_delta, e.reserved_delta].every(x => integer(x, -1000000, 1000000)) || !string(e.reason, 1000, 1) || !date(e.created_at)) return invalid();
         return { id: e.id, kind: e.kind as string, xp_delta: e.xp_delta as number, bucks_delta: e.bucks_delta as number, reserved_delta: e.reserved_delta as number, reason: e.reason, created_at: e.created_at };
       });
@@ -95,7 +95,7 @@ export function createRewardsApi(config: { apiUrl: string; apiKey: string; guild
       const b = await get("requests", actor, offset), nextOffset = page(b, offset);
       const requests = rows(b.requests).map(r => {
         if (typeof r.id !== "string" || !uuid.test(r.id) || !string(r.title, 120, 1) || !integer(r.price, 1, 1000000) || !integer(r.version, 1)
-          || !["pending", "approved", "rejected", "cancelled", "fulfilled"].includes(String(r.status)) || !string(r.reason, 1000) || !date(r.created_at) || !(r.decided_at === null || date(r.decided_at))) return invalid();
+          || !["pending", "approved", "rejected", "cancelled", "fulfilled", "refunded"].includes(String(r.status)) || !string(r.reason, 1000) || !date(r.created_at) || !(r.decided_at === null || date(r.decided_at))) return invalid();
         return { id: r.id, title: r.title, price: r.price, version: r.version, status: r.status as RewardRequest["status"], reason: r.reason, created_at: r.created_at, decided_at: r.decided_at as string | null };
       }); return { requests, nextOffset };
     },

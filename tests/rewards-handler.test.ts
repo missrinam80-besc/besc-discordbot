@@ -21,6 +21,13 @@ function interaction(sub = "beloningen", customId?: string, values?: string[], a
   return { value, messages, deferrals, typed: value as unknown as RewardsInteraction };
 }
 const component = (m: any, row = 0, column = 0): string => m.components[row].components[column].custom_id;
+
+test("RE01: eigen terugbetaalde aanvraag is herkenbaar en kan niet opnieuw worden geannuleerd",async(t)=>{
+ const s=await setup(t);s.api.requests=async()=>({requests:[{...examples.requests.requests[0],status:'refunded'}],nextOffset:null});
+ const list=interaction('aanvragen');await s.handler(list.typed);assert.match(list.messages[0].content,/Terugbetaald/);
+ const choose=interaction('',component(list.messages[0]),[examples.requests.requests[0].id]);await s.handler(choose.typed);
+ assert.doesNotMatch(choose.messages[0].content,/Annuleren bevestigen/);
+});
 async function setup(t: TestContext) {
   t.after(async () => { await worker.stop(); state.close(); });
   const state = new FileRewardState(await testDirectory(t), binding), api = baseApi(); let now = 1_800_000_000_000;
