@@ -78,7 +78,7 @@ export function createRewardsApi(config: { apiUrl: string; apiKey: string; guild
       const b = await get("account", actor, offset), nextOffset = page(b, offset);
       if (![b.xp, b.bucks, b.reserved, b.available].every(x => integer(x)) || !integer(b.level, 0, 100) || Number(b.reserved) > Number(b.bucks) || b.available !== Number(b.bucks) - Number(b.reserved)) return invalid();
       const ledger = rows(b.ledger).map(e => {
-        if (typeof e.id !== "string" || !uuid.test(e.id) || !["manual", "correction", "activity", "reserve", "spend", "release", "fulfill", "refund"].includes(String(e.kind))
+        if (typeof e.id !== "string" || !uuid.test(e.id) || !["manual", "correction", "activity", "reserve", "spend", "release", "fulfill", "refund", "external_transfer"].includes(String(e.kind))
           || ![e.xp_delta, e.bucks_delta, e.reserved_delta].every(x => integer(x, -1000000, 1000000)) || !string(e.reason, 1000, 1) || !date(e.created_at)) return invalid();
         return { id: e.id, kind: e.kind as string, xp_delta: e.xp_delta as number, bucks_delta: e.bucks_delta as number, reserved_delta: e.reserved_delta as number, reason: e.reason, created_at: e.created_at };
       });
