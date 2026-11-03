@@ -106,3 +106,9 @@ test("Bucks real stalled HTTP response body is cancelled under its client deadli
     for (let n = 0; n < 100 && !closed; n++) await new Promise(resolve => setTimeout(resolve, 10)); assert.equal(closed, true);
   } finally { server.close(); server.closeAllConnections(); }
 });
+
+test("RE03: transfer ledger is readable but never a bot write operation",async()=>{
+ const api=createRewardsApi(apiConfig,async()=>response({...examples.account,ledger:[{id:'50000000-0000-4000-8000-000000000001',kind:'external_transfer',xp_delta:0,bucks_delta:-20,reserved_delta:0,reason:'TESTFIXTURE doelsaldo',created_at:'2026-11-03T12:00:00Z'}]}));
+ assert.equal((await api.account(examples.discordUserId)).ledger[0].kind,'external_transfer');
+ assert.equal(validRewardJob({...job,operation:'external_transfer'}),false);
+});
