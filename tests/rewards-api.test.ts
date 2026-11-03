@@ -36,6 +36,16 @@ test("Bucks pagination rejects caller overflow before networking", async () => {
   let calls = 0; const api = createRewardsApi(apiConfig, async () => { calls++; return response(examples.account); });
   await assert.rejects(api.account(examples.discordUserId, 99976)); await assert.rejects(api.account("someone")); assert.equal(calls, 0);
 });
+
+test("RE01: refunded request and positive refund ledger remain readable without any new write authority",async()=>{
+ const api=createRewardsApi(apiConfig,async(input)=>{
+  if(new URL(String(input)).pathname.endsWith('/requests'))return response({...examples.requests,requests:[{...examples.requests.requests[0],status:'refunded'}]});
+  return response({...examples.account,ledger:[{id:'50000000-0000-4000-8000-000000000001',kind:'refund',xp_delta:0,bucks_delta:60,reserved_delta:0,reason:'TESTFIXTURE niet geleverd',created_at:'2026-11-03T12:00:00Z'}]});
+ });
+ assert.equal((await api.requests(examples.discordUserId)).requests[0].status,'refunded');
+ assert.equal((await api.account(examples.discordUserId)).ledger[0].kind,'refund');
+ assert.equal(validRewardJob({...job,operation:'refund'}),false);
+});
 test("Bucks config accepts disabled and configured voice rules with strict guild/schema validation", () => {
   assert.equal(parseRewardConfig(examples.configEnabled, examples.guildId).rules[0].voice_min_participants, 2);
   for (const change of [{ guild_id: "222222222222222222" }, { xp: -1 }, { enabled: false }, { cooldown_seconds: 0 }, { exclude_muted: "yes" }]) {
